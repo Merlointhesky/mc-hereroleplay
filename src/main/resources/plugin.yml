@@ -1,0 +1,11 @@
+name: HereRolePlay
+version: '1.0-SNAPSHOT'
+main: com.here.hereroleplay.HereRolePlay
+api-version: '1.20'
+prefix: HRP
+authors: [ You ]
+description: A comprehensive RPG plugin for Paper.
+commands:
+  hrp:
+    description: Main HereRolePlay command.
+    aliases: [hereroleplay]

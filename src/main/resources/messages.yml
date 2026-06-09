@@ -1,0 +1,12 @@
+# HereRolePlay Messages Configuration
+
+prefix: "&8[&eHRP&8] &7"
+
+level-up:
+  combat: "&aYou have leveled up Combat to level &e%level%&a!"
+  collect: "&aYou have leveled up Collect to level &e%level%&a!"
+  craft: "&aYou have leveled up Craft to level &e%level%&a!"
+
+commands:
+  no-permission: "&cYou do not have permission to use this command."
+  player-only: "&cOnly players can use this command."

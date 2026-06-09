@@ -1,0 +1,22 @@
+# HereRolePlay Default Configuration
+
+database:
+  # The file name for the SQLite database. It will be created in the plugin folder.
+  file: "database.db"
+
+xp:
+  # The base modifier for the XP formula
+  base-modifier: 100
+  # The scaling coefficient for the XP formula
+  scaling-coefficient: 1.5
+  
+  multipliers:
+    # Workstation multipliers
+    blast-furnace: 2.0
+    smoker: 2.0
+
+statistics:
+  # Whether to generate the statistics.yml file
+  enabled: true
+  # How often to generate the file, in minutes
+  update-interval: 30
