@@ -35,6 +35,9 @@ public class ClassDirectoryGUI implements CustomGUI {
         
         int slot = 10;
         for (HrpClass hrpClass : classes) {
+            if (hrpClass.getName().equalsIgnoreCase("Admin Class")) {
+                continue;
+            }
             // Keep formatting somewhat centered
             if (slot == 17 || slot == 26 || slot == 35) slot += 2;
             

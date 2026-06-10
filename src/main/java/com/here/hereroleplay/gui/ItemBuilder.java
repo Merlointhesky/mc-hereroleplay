@@ -34,6 +34,16 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder setLore(List<String> lore) {
+        if (meta != null) {
+            List<String> coloredLore = lore.stream()
+                    .map(line -> org.bukkit.ChatColor.translateAlternateColorCodes('&', line))
+                    .toList();
+            meta.setLore(coloredLore);
+        }
+        return this;
+    }
+
     public ItemStack build() {
         if (meta != null) {
             item.setItemMeta(meta);

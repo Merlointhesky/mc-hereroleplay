@@ -31,6 +31,11 @@ public class HrpCommand implements CommandExecutor {
             player.openInventory(gui.getInventory());
             return true;
         }
+
+        if (args[0].equalsIgnoreCase("leaderboard") || args[0].equalsIgnoreCase("top")) {
+            com.here.hereroleplay.gui.menus.LeaderboardGUI.openLeaderboard(plugin, player);
+            return true;
+        }
         
         if (args[0].equalsIgnoreCase("admin")) {
             if (!sender.hasPermission("hrp.admin")) {

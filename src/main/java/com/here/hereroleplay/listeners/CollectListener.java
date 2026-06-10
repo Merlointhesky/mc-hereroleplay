@@ -3,11 +3,14 @@ package com.here.hereroleplay.listeners;
 import com.here.hereroleplay.HereRolePlay;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
 public class CollectListener implements Listener {
@@ -38,20 +41,51 @@ public class CollectListener implements Listener {
 
         Material type = block.getType();
         double xpToGive = 0;
+        boolean isCrop = false;
 
-        String name = type.name();
-        if (name.contains("LOG") || name.contains("WOOD")) {
-            xpToGive = 2.0;
-        } else if (name.contains("COAL_ORE") || name.contains("IRON_ORE") || name.contains("COPPER_ORE") || name.contains("GOLD_ORE") || name.contains("REDSTONE_ORE") || name.contains("LAPIS_ORE")) {
-            xpToGive = 5.0;
-        } else if (name.contains("DIAMOND_ORE") || name.contains("EMERALD_ORE") || type == Material.ANCIENT_DEBRIS || type == Material.NETHER_QUARTZ_ORE || type == Material.NETHER_GOLD_ORE) {
-            xpToGive = 25.0;
-        } else if (org.bukkit.Tag.MINEABLE_PICKAXE.isTagged(type) || org.bukkit.Tag.MINEABLE_SHOVEL.isTagged(type)) {
-            xpToGive = 2.0;
+        // Farming crops check
+        if (type == Material.WHEAT || type == Material.CARROTS || type == Material.POTATOES || 
+            type == Material.BEETROOTS || type == Material.COCOA || type == Material.NETHER_WART || 
+            type == Material.SWEET_BERRY_BUSH) {
+            isCrop = true;
+            BlockData blockData = block.getBlockData();
+            if (blockData instanceof Ageable ageable) {
+                // Ensure the crop is fully ripe
+                if (ageable.getAge() == ageable.getMaximumAge()) {
+                    xpToGive = 3.0; // Farming base XP
+                }
+            }
+        } else if (type == Material.MELON || type == Material.PUMPKIN) {
+            isCrop = true;
+            xpToGive = 3.0; // Pumpkin/melon block breaks
+        } else if (type == Material.SUGAR_CANE || type == Material.CACTUS || type == Material.BAMBOO) {
+            isCrop = true;
+            xpToGive = 1.0; // Individual vertical growth blocks
+        }
+
+        if (!isCrop) {
+            String name = type.name();
+            if (name.contains("LOG") || name.contains("WOOD")) {
+                xpToGive = 2.0;
+            } else if (name.contains("COAL_ORE") || name.contains("IRON_ORE") || name.contains("COPPER_ORE") || name.contains("GOLD_ORE") || name.contains("REDSTONE_ORE") || name.contains("LAPIS_ORE")) {
+                xpToGive = 5.0;
+            } else if (name.contains("DIAMOND_ORE") || name.contains("EMERALD_ORE") || type == Material.ANCIENT_DEBRIS || type == Material.NETHER_QUARTZ_ORE || type == Material.NETHER_GOLD_ORE) {
+                xpToGive = 25.0;
+            } else if (org.bukkit.Tag.MINEABLE_PICKAXE.isTagged(type) || org.bukkit.Tag.MINEABLE_SHOVEL.isTagged(type)) {
+                xpToGive = 2.0;
+            }
         }
 
         if (xpToGive > 0) {
             plugin.getXpManager().addCollectXp(player, xpToGive);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerFish(PlayerFishEvent event) {
+        if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
+            Player player = event.getPlayer();
+            plugin.getXpManager().addCollectXp(player, 10.0);
         }
     }
 }

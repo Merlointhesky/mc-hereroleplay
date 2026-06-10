@@ -13,10 +13,51 @@ public class ClassManager {
 
     private final HereRolePlay plugin;
     private final List<HrpClass> classes = new ArrayList<>();
+    private final List<ActiveSkill> activeSkills = new ArrayList<>();
+    private final List<PassiveSkill> passiveSkills = new ArrayList<>();
+
+    public static class ActiveSkill {
+        private final String name;
+        private final String className;
+        private final String trigger;
+        private final int manaCost;
+        private final String effect;
+
+        public ActiveSkill(String name, String className, String trigger, int manaCost, String effect) {
+            this.name = name;
+            this.className = className;
+            this.trigger = trigger;
+            this.manaCost = manaCost;
+            this.effect = effect;
+        }
+
+        public String getName() { return name; }
+        public String getClassName() { return className; }
+        public String getTrigger() { return trigger; }
+        public int getManaCost() { return manaCost; }
+        public String getEffect() { return effect; }
+    }
+
+    public static class PassiveSkill {
+        private final String name;
+        private final String className;
+        private final String effect;
+
+        public PassiveSkill(String name, String className, String effect) {
+            this.name = name;
+            this.className = className;
+            this.effect = effect;
+        }
+
+        public String getName() { return name; }
+        public String getClassName() { return className; }
+        public String getEffect() { return effect; }
+    }
 
     public ClassManager(HereRolePlay plugin) {
         this.plugin = plugin;
         registerDefaultClasses();
+        registerSkills();
     }
 
     private void registerDefaultClasses() {
@@ -35,6 +76,67 @@ public class ClassManager {
         
         // Admin
         classes.add(new HrpClass("Admin Class", "Unlocked by mastering everything.", 100, 100, 100, 100, 400));
+    }
+
+    private void registerSkills() {
+        // Warrior
+        activeSkills.add(new ActiveSkill("Cleave", "Warrior", "Press [F] with Sword", 30, "Sweep attack dealing AoE damage."));
+        passiveSkills.add(new PassiveSkill("Heavy Strike", "Warrior", "+20% Melee Damage"));
+
+        // Ranger
+        activeSkills.add(new ActiveSkill("Quick Shot", "Ranger", "Swap Hand/Right Click with Bow", 20, "Rapid arrows firing."));
+        passiveSkills.add(new PassiveSkill("Precision", "Ranger", "+15% Crit Chance"));
+
+        // Wizard
+        activeSkills.add(new ActiveSkill("Arcane Missile", "Wizard", "Press [F] with Stick", 15, "Shoot magical missile projectile."));
+        passiveSkills.add(new PassiveSkill("Spell Echo", "Wizard", "+20% Mana Regeneration"));
+
+        // Miner
+        activeSkills.add(new ActiveSkill("Timber", "Miner", "Shift-Right Click Log with Axe", 20, "Instantly break column of logs."));
+        passiveSkills.add(new PassiveSkill("Dense Armor", "Miner", "+5 Armor points"));
+
+        // Farmer
+        activeSkills.add(new ActiveSkill("Rejuvenation", "Farmer", "Shift-Right Click with Hoe", 25, "AoE heal self and nearby entities."));
+        passiveSkills.add(new PassiveSkill("Bountiful Harvest", "Farmer", "+25% double crop yield"));
+
+        // Engineer
+        activeSkills.add(new ActiveSkill("Overload", "Engineer", "Right Click with Redstone", 15, "Gain speed burst."));
+        passiveSkills.add(new PassiveSkill("Efficiency", "Engineer", "+10% Movement Speed"));
+
+        // Paladin
+        activeSkills.add(new ActiveSkill("Aegis", "Paladin", "Shift-Right Click with Shield", 40, "Absorbs next damage hit."));
+        activeSkills.add(new ActiveSkill("Holy Nova", "Paladin", "Press [F] with Gold Sword", 35, "AoE heal and damage."));
+        passiveSkills.add(new PassiveSkill("Guardian", "Paladin", "+20% Max Health"));
+
+        // Landlord
+        activeSkills.add(new ActiveSkill("Transmutation", "Landlord", "Right Click Stone/Cobble with Iron Ingot", 30, "Turns block to ore."));
+        passiveSkills.add(new PassiveSkill("Domain Lord", "Landlord", "No fall damage"));
+
+        // Alchemist
+        activeSkills.add(new ActiveSkill("Brew Burst", "Alchemist", "Right Click with Brewing Stand", 25, "Throws splash healing/buff potion."));
+        passiveSkills.add(new PassiveSkill("Catalyst", "Alchemist", "+30% Potion Duration"));
+    }
+
+    public List<ActiveSkill> getUnlockedActiveSkills(PlayerProfile profile) {
+        List<ActiveSkill> unlocked = new ArrayList<>();
+        boolean hasAdmin = profile.getUnlockedClasses().contains("Admin Class");
+        for (ActiveSkill skill : activeSkills) {
+            if (hasAdmin || profile.getUnlockedClasses().contains(skill.getClassName())) {
+                unlocked.add(skill);
+            }
+        }
+        return unlocked;
+    }
+
+    public List<PassiveSkill> getUnlockedPassiveSkills(PlayerProfile profile) {
+        List<PassiveSkill> unlocked = new ArrayList<>();
+        boolean hasAdmin = profile.getUnlockedClasses().contains("Admin Class");
+        for (PassiveSkill skill : passiveSkills) {
+            if (hasAdmin || profile.getUnlockedClasses().contains(skill.getClassName())) {
+                unlocked.add(skill);
+            }
+        }
+        return unlocked;
     }
 
     public List<HrpClass> getClasses() {

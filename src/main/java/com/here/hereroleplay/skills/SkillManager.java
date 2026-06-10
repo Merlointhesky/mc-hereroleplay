@@ -68,6 +68,11 @@ public class SkillManager implements Listener {
     }
 
     private void executeTimber(Player player, PlayerProfile profile) {
+        if (!profile.getUnlockedClasses().contains("Miner") && !profile.getUnlockedClasses().contains("Admin Class")) {
+            player.sendMessage(ChatColor.RED + "You must unlock the Miner class to use Timber!");
+            return;
+        }
+
         double cost = 20.0;
         if (profile.getCurrentMana() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough mana for Timber!");
@@ -92,6 +97,11 @@ public class SkillManager implements Listener {
     }
 
     private void executeCleave(Player player, PlayerProfile profile) {
+        if (!profile.getUnlockedClasses().contains("Warrior") && !profile.getUnlockedClasses().contains("Admin Class")) {
+            player.sendMessage(ChatColor.RED + "You must unlock the Warrior class to use Cleave!");
+            return;
+        }
+
         double cost = 30.0;
         if (profile.getCurrentMana() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough mana for Cleave!");
@@ -112,6 +122,11 @@ public class SkillManager implements Listener {
     }
 
     private void executeArcaneMissile(Player player, PlayerProfile profile) {
+        if (!profile.getUnlockedClasses().contains("Wizard") && !profile.getUnlockedClasses().contains("Admin Class")) {
+            player.sendMessage(ChatColor.RED + "You must unlock the Wizard class to use Arcane Missile!");
+            return;
+        }
+
         double cost = 15.0;
         if (profile.getCurrentMana() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough mana for Arcane Missile!");
