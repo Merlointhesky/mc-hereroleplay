@@ -12,9 +12,17 @@ public class ManaManager {
     private final HereRolePlay plugin;
     private int regenTaskId = -1;
     private int actionbarTaskId = -1;
+    private final double baseRegen;
+    private final double intelligenceRegenBonus;
+    private final double baseMaxMana;
+    private final double intelligenceMaxBonus;
 
     public ManaManager(HereRolePlay plugin) {
         this.plugin = plugin;
+        this.baseRegen = plugin.getConfig().getDouble("mana.base-regen", 1.0);
+        this.intelligenceRegenBonus = plugin.getConfig().getDouble("mana.intelligence-regen-bonus", 0.1);
+        this.baseMaxMana = plugin.getConfig().getDouble("mana.base-max", 20.0);
+        this.intelligenceMaxBonus = plugin.getConfig().getDouble("mana.intelligence-max-bonus", 10.0);
     }
 
     public void start() {
@@ -31,8 +39,7 @@ public class ManaManager {
     }
 
     public double getMaxMana(PlayerProfile profile) {
-        // Base 20 + 10 per intelligence point
-        return 20.0 + (profile.getIntelligencePoints() * 10.0);
+        return baseMaxMana + (profile.getIntelligencePoints() * intelligenceMaxBonus);
     }
 
     private void regenerateMana() {
@@ -45,8 +52,7 @@ public class ManaManager {
             if (currentMana > maxMana) {
                 profile.setCurrentMana(maxMana);
             } else if (currentMana < maxMana) {
-                // Regen 5 mana per second + 0.5 per int point
-                double regenAmount = 5.0 + (profile.getIntelligencePoints() * 0.5);
+                double regenAmount = baseRegen + (profile.getIntelligencePoints() * intelligenceRegenBonus);
                 int spellEchoLvl = profile.getSkillLevel("Spell Echo");
                 if (spellEchoLvl > 0) {
                     regenAmount *= (1.0 + spellEchoLvl * 0.01);

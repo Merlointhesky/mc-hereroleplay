@@ -20,3 +20,14 @@ statistics:
   enabled: true
   # How often to generate the file, in minutes
   update-interval: 30
+
+mana:
+  # The base amount of mana regenerated per second (default was 5.0)
+  base-regen: 1.0
+  # The bonus mana regenerated per second per intelligence point (default was 0.5)
+  intelligence-regen-bonus: 0.1
+  # The base maximum mana
+  base-max: 20.0
+  # The bonus maximum mana per intelligence point
+  intelligence-max-bonus: 10.0
+

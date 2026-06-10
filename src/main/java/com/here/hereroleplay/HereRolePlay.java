@@ -82,7 +82,9 @@ public final class HereRolePlay extends JavaPlugin {
         }, 100L, 100L);
 
         // Register Commands
-        getCommand("hrp").setExecutor(new HrpCommand(this));
+        HrpCommand hrpCommand = new HrpCommand(this);
+        getCommand("hrp").setExecutor(hrpCommand);
+        getCommand("hrp").setTabCompleter(hrpCommand);
         
         // Register PlaceholderAPI if present
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
