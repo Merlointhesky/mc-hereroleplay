@@ -57,8 +57,8 @@ public class AttributeManager implements Listener {
         }
         applyModifier(player, Attribute.GENERIC_MAX_HEALTH, healthBonus);
 
-        // Agility -> Movement Speed (+0.002 speed per point)
-        double speedBonus = profile.getAgilityPoints() * 0.002;
+        // Agility -> Movement Speed (+0.0002 speed per point)
+        double speedBonus = profile.getAgilityPoints() * 0.0002;
         applyModifier(player, Attribute.GENERIC_MOVEMENT_SPEED, speedBonus);
 
         // Strength -> Attack Damage (+0.5 damage per point)
@@ -96,7 +96,6 @@ public class AttributeManager implements Listener {
                 continue;
             }
             
-            plugin.getLogger().info("Removing stale attribute modifier from " + player.getName() + " on " + attribute.name() + ": " + modifier.getName() + " (UUID: " + uuid + ")");
             instance.removeModifier(modifier);
         }
     }

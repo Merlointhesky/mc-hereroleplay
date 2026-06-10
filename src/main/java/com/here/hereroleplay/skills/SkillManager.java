@@ -107,7 +107,6 @@ public class SkillManager implements Listener {
     private void executeTimber(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Timber");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Miner class and Timber skill first!");
             return;
         }
 
@@ -137,7 +136,6 @@ public class SkillManager implements Listener {
     private void executeDiggyDiggyHole(Player player, PlayerProfile profile, Block startBlock) {
         int level = profile.getSkillLevel("Diggy Diggy Hole");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Miner class and Diggy Diggy Hole skill first!");
             return;
         }
 
@@ -182,7 +180,6 @@ public class SkillManager implements Listener {
     private void executeTunnelVision(Player player, PlayerProfile profile, Block startBlock) {
         int level = profile.getSkillLevel("Tunnel Vision");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Miner class and Tunnel Vision skill first!");
             return;
         }
 
@@ -240,7 +237,6 @@ public class SkillManager implements Listener {
     private void executeCleave(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Cleave");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Warrior class and Cleave skill first!");
             return;
         }
 
@@ -268,7 +264,6 @@ public class SkillManager implements Listener {
     private void executeArcaneMissile(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Arcane Missile");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Wizard class and Arcane Missile skill first!");
             return;
         }
 
@@ -292,7 +287,6 @@ public class SkillManager implements Listener {
     private void executeFireball(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Fireball");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Wizard class and Fireball skill first!");
             return;
         }
 
@@ -315,7 +309,6 @@ public class SkillManager implements Listener {
     private void executeQuickShot(final Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Quick Shot");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Ranger class and Quick Shot skill first!");
             return;
         }
 
@@ -348,7 +341,6 @@ public class SkillManager implements Listener {
     private void executeRejuvenation(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Rejuvenation");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Farmer class and Rejuvenation skill first!");
             return;
         }
 
@@ -422,7 +414,6 @@ public class SkillManager implements Listener {
     private void executeAegis(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Aegis");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Paladin class and Aegis skill first!");
             return;
         }
 
@@ -444,7 +435,6 @@ public class SkillManager implements Listener {
     private void executeHolyNova(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Holy Nova");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Paladin class and Holy Nova skill first!");
             return;
         }
 
@@ -478,7 +468,6 @@ public class SkillManager implements Listener {
     private void executeTransmutation(Player player, PlayerProfile profile, Block center) {
         int level = profile.getSkillLevel("Transmutation");
         if (level == 0) {
-            player.sendMessage(ChatColor.RED + "You must unlock the Landlord class and Transmutation skill first!");
             return;
         }
 
