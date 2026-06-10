@@ -28,25 +28,29 @@ public class ClassDirectoryGUI implements CustomGUI {
     }
 
     private void setupItems() {
+        inventory.clear();
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
         List<HrpClass> classes = plugin.getClassManager().getClasses();
         
-        int slot = 10;
+        int baseSlot = 10;
+        int heroSlot = 30;
+        
         for (HrpClass hrpClass : classes) {
             if (hrpClass.getName().equalsIgnoreCase("Admin Class")) {
                 continue;
             }
-            // Keep formatting somewhat centered
-            if (slot == 17 || slot == 26 || slot == 35) slot += 2;
             
             boolean unlocked = profile.getUnlockedClasses().contains(hrpClass.getName());
-            Material mat = unlocked ? Material.ENCHANTED_BOOK : Material.BOOK;
-            String status = unlocked ? "&aUnlocked" : "&cLocked";
+            Material mat = hrpClass.getIcon();
+            String status = unlocked ? "&aUnlocked &7(Click to open skills)" : "&cLocked";
+            
+            int slot = hrpClass.isHero() ? heroSlot++ : baseSlot++;
             
             inventory.setItem(slot, new ItemBuilder(mat)
                     .setName("&6" + hrpClass.getName())
+                    .setGlowing(unlocked)
                     .setLore(
                         "&7" + hrpClass.getDescription(),
                         "",
@@ -59,17 +63,50 @@ public class ClassDirectoryGUI implements CustomGUI {
                         "",
                         "&fStatus: " + status
                     ).build());
-            slot++;
         }
 
         // Back button
         inventory.setItem(49, new ItemBuilder(Material.ARROW).setName("&cBack").build());
+
+        // Filler
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null) {
+                inventory.setItem(i, new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName(" ").build());
+            }
+        }
     }
 
     @Override
     public void onClick(InventoryClickEvent event) {
-        if (event.getSlot() == 49) {
+        int clickedSlot = event.getSlot();
+        if (clickedSlot == 49) {
             player.openInventory(new MainHubGUI(plugin, player).getInventory());
+            return;
+        }
+
+        PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+        if (profile == null) return;
+
+        List<HrpClass> classes = plugin.getClassManager().getClasses();
+        int baseSlot = 10;
+        int heroSlot = 30;
+
+        for (HrpClass hrpClass : classes) {
+            if (hrpClass.getName().equalsIgnoreCase("Admin Class")) {
+                continue;
+            }
+            
+            int expectedSlot = hrpClass.isHero() ? heroSlot++ : baseSlot++;
+            if (clickedSlot == expectedSlot) {
+                if (profile.getUnlockedClasses().contains(hrpClass.getName())) {
+                    player.openInventory(new ClassSkillsGUI(plugin, player, hrpClass).getInventory());
+                    player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1.5f);
+                } else {
+                    player.sendMessage("§cYou must unlock the " + hrpClass.getName() + " class first!");
+                    player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+                }
+                break;
+            }
         }
     }
 

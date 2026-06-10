@@ -3,6 +3,7 @@ package com.here.hereroleplay.classes;
 import com.here.hereroleplay.HereRolePlay;
 import com.here.hereroleplay.data.PlayerProfile;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
@@ -62,20 +63,20 @@ public class ClassManager {
 
     private void registerDefaultClasses() {
         // Base Classes
-        classes.add(new HrpClass("Warrior", "Melee power, Armor scaling.", 20, 0, 20, 0, 40));
-        classes.add(new HrpClass("Ranger", "Ranged Crit chance, Move speed.", 0, 20, 20, 0, 40));
-        classes.add(new HrpClass("Wizard", "Magic spells via Stick, Mana efficient.", 0, 0, 20, 20, 40));
-        classes.add(new HrpClass("Miner", "Excavation bursts, Toughness.", 20, 20, 0, 0, 40));
-        classes.add(new HrpClass("Farmer", "AoE Healing, Resource yield.", 0, 20, 0, 20, 40));
-        classes.add(new HrpClass("Engineer", "Industrial mass production, Enchanting.", 20, 0, 0, 20, 40));
+        classes.add(new HrpClass("Warrior", "Melee power, Armor scaling.", 20, 0, 20, 0, 40, Material.IRON_SWORD, false));
+        classes.add(new HrpClass("Ranger", "Ranged Crit chance, Move speed.", 0, 20, 20, 0, 40, Material.BOW, false));
+        classes.add(new HrpClass("Wizard", "Magic spells via Stick, Mana efficient.", 0, 0, 20, 20, 40, Material.BLAZE_ROD, false));
+        classes.add(new HrpClass("Miner", "Excavation bursts, Toughness.", 20, 20, 0, 0, 40, Material.IRON_PICKAXE, false));
+        classes.add(new HrpClass("Farmer", "AoE Healing, Resource yield.", 0, 20, 0, 20, 40, Material.IRON_HOE, false));
+        classes.add(new HrpClass("Engineer", "Industrial mass production, Enchanting.", 20, 0, 0, 20, 40, Material.REDSTONE, false));
         
         // Hero Classes
-        classes.add(new HrpClass("Paladin", "Pure active skill tank/healer (Aegis, Holy Nova).", 30, 0, 30, 30, 100));
-        classes.add(new HrpClass("Landlord", "World shaping (Transmutation).", 30, 30, 30, 0, 100));
-        classes.add(new HrpClass("Alchemist", "Output doubling (Potions, Enchanting).", 0, 30, 30, 30, 100));
+        classes.add(new HrpClass("Paladin", "Pure active skill tank/healer (Aegis, Holy Nova).", 60, 0, 60, 60, 200, Material.SHIELD, true));
+        classes.add(new HrpClass("Landlord", "World shaping (Transmutation).", 60, 60, 60, 0, 200, Material.GRASS_BLOCK, true));
+        classes.add(new HrpClass("Alchemist", "Output doubling (Potions, Enchanting).", 0, 60, 60, 60, 200, Material.BREWING_STAND, true));
         
         // Admin
-        classes.add(new HrpClass("Admin Class", "Unlocked by mastering everything.", 100, 100, 100, 100, 400));
+        classes.add(new HrpClass("Admin Class", "Unlocked by mastering everything.", 100, 100, 100, 100, 400, Material.COMMAND_BLOCK, true));
     }
 
     private void registerSkills() {
@@ -89,6 +90,7 @@ public class ClassManager {
 
         // Wizard
         activeSkills.add(new ActiveSkill("Arcane Missile", "Wizard", "Press [F] with Stick", 15, "Shoot magical missile projectile."));
+        activeSkills.add(new ActiveSkill("Fireball", "Wizard", "Press [F] with Blaze Rod", 25, "Shoot explosive fireball projectile."));
         passiveSkills.add(new PassiveSkill("Spell Echo", "Wizard", "+20% Mana Regeneration"));
 
         // Miner
@@ -141,6 +143,26 @@ public class ClassManager {
 
     public List<HrpClass> getClasses() {
         return classes;
+    }
+
+    public List<ActiveSkill> getActiveSkillsForClass(String className) {
+        List<ActiveSkill> list = new ArrayList<>();
+        for (ActiveSkill skill : activeSkills) {
+            if (skill.getClassName().equalsIgnoreCase(className)) {
+                list.add(skill);
+            }
+        }
+        return list;
+    }
+
+    public List<PassiveSkill> getPassiveSkillsForClass(String className) {
+        List<PassiveSkill> list = new ArrayList<>();
+        for (PassiveSkill skill : passiveSkills) {
+            if (skill.getClassName().equalsIgnoreCase(className)) {
+                list.add(skill);
+            }
+        }
+        return list;
     }
 
     public void checkUnlocks(Player player) {

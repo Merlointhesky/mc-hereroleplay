@@ -1,6 +1,8 @@
 package com.here.hereroleplay.data;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -86,4 +88,19 @@ public class PlayerProfile {
     // Mana
     public double getCurrentMana() { return currentMana; }
     public void setCurrentMana(double currentMana) { this.currentMana = currentMana; }
+
+    // Skill Levels
+    private final Map<String, Integer> skillLevels = new HashMap<>();
+
+    public int getSkillLevel(String skillName) {
+        return skillLevels.getOrDefault(skillName, 0);
+    }
+
+    public void setSkillLevel(String skillName, int level) {
+        skillLevels.put(skillName, level);
+    }
+
+    public Map<String, Integer> getSkillLevels() {
+        return skillLevels;
+    }
 }

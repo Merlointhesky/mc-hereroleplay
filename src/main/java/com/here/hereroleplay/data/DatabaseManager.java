@@ -75,11 +75,17 @@ public class DatabaseManager {
                 "vitalityPoints INT DEFAULT 0, " +
                 "intelligencePoints INT DEFAULT 0, " +
                 "unspentSkillPoints INT DEFAULT 0, " +
-                "unlockedClasses TEXT DEFAULT ''" +
+                "unlockedClasses TEXT DEFAULT '', " +
+                "skillLevels TEXT DEFAULT ''" +
                 ");";
 
         try (Statement statement = connection.createStatement()) {
             statement.execute(createProfilesTable);
+            try {
+                statement.execute("ALTER TABLE hrp_profiles ADD COLUMN skillLevels TEXT DEFAULT '';");
+            } catch (SQLException e) {
+                // Column might already exist, which is fine
+            }
         }
     }
 
@@ -115,6 +121,9 @@ public class DatabaseManager {
                     if (classesStr != null && !classesStr.isEmpty()) {
                         profile.getUnlockedClasses().addAll(Arrays.asList(classesStr.split(",")));
                     }
+                    
+                    String skillLevelsStr = rs.getString("skillLevels");
+                    deserializeSkillLevels(skillLevelsStr, profile);
                 } else {
                     // Create new record
                     saveProfileSync(profile);
@@ -133,8 +142,8 @@ public class DatabaseManager {
     private void saveProfileSync(PlayerProfile profile) {
         String query = "INSERT OR REPLACE INTO hrp_profiles " +
                 "(uuid, combatLevel, collectLevel, craftLevel, combatXp, collectXp, craftXp, " +
-                "strengthPoints, agilityPoints, vitalityPoints, intelligencePoints, unspentSkillPoints, unlockedClasses) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "strengthPoints, agilityPoints, vitalityPoints, intelligencePoints, unspentSkillPoints, unlockedClasses, skillLevels) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, profile.getUuid().toString());
             stmt.setInt(2, profile.getCombatLevel());
@@ -149,6 +158,7 @@ public class DatabaseManager {
             stmt.setInt(11, profile.getIntelligencePoints());
             stmt.setInt(12, profile.getUnspentSkillPoints());
             stmt.setString(13, String.join(",", profile.getUnlockedClasses()));
+            stmt.setString(14, serializeSkillLevels(profile.getSkillLevels()));
             
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -184,12 +194,40 @@ public class DatabaseManager {
                 if (classesStr != null && !classesStr.isEmpty()) {
                     profile.getUnlockedClasses().addAll(java.util.Arrays.asList(classesStr.split(",")));
                 }
+                
+                String skillLevelsStr = rs.getString("skillLevels");
+                deserializeSkillLevels(skillLevelsStr, profile);
+                
                 list.add(profile);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    private String serializeSkillLevels(java.util.Map<String, Integer> map) {
+        if (map == null || map.isEmpty()) return "";
+        java.util.List<String> list = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<String, Integer> entry : map.entrySet()) {
+            list.add(entry.getKey() + ":" + entry.getValue());
+        }
+        return String.join(",", list);
+    }
+
+    private void deserializeSkillLevels(String str, PlayerProfile profile) {
+        if (str == null || str.isEmpty()) return;
+        String[] parts = str.split(",");
+        for (String part : parts) {
+            String[] kv = part.split(":");
+            if (kv.length == 2) {
+                try {
+                    profile.setSkillLevel(kv[0], Integer.parseInt(kv[1]));
+                } catch (NumberFormatException e) {
+                    // Ignore malformed entries
+                }
+            }
+        }
     }
     
     public void unloadProfile(UUID uuid) {

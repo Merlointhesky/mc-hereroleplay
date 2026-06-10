@@ -1,6 +1,7 @@
 package com.here.hereroleplay.classes;
 
 import com.here.hereroleplay.data.PlayerProfile;
+import org.bukkit.Material;
 
 public class HrpClass {
 
@@ -13,8 +14,11 @@ public class HrpClass {
     private final int reqVitality;
     private final int reqIntelligence;
     private final int reqTotalPoints;
+    
+    private final Material icon;
+    private final boolean hero;
 
-    public HrpClass(String name, String description, int reqStrength, int reqAgility, int reqVitality, int reqIntelligence, int reqTotalPoints) {
+    public HrpClass(String name, String description, int reqStrength, int reqAgility, int reqVitality, int reqIntelligence, int reqTotalPoints, Material icon, boolean hero) {
         this.name = name;
         this.description = description;
         this.reqStrength = reqStrength;
@@ -22,6 +26,8 @@ public class HrpClass {
         this.reqVitality = reqVitality;
         this.reqIntelligence = reqIntelligence;
         this.reqTotalPoints = reqTotalPoints;
+        this.icon = icon;
+        this.hero = hero;
     }
 
     public String getName() { return name; }
@@ -32,6 +38,8 @@ public class HrpClass {
     public int getReqVitality() { return reqVitality; }
     public int getReqIntelligence() { return reqIntelligence; }
     public int getReqTotalPoints() { return reqTotalPoints; }
+    public Material getIcon() { return icon; }
+    public boolean isHero() { return hero; }
 
     public boolean meetsRequirements(PlayerProfile profile) {
         if (profile.getStrengthPoints() < reqStrength) return false;

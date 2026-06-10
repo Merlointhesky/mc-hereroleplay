@@ -78,6 +78,24 @@ public class CollectListener implements Listener {
 
         if (xpToGive > 0) {
             plugin.getXpManager().addCollectXp(player, xpToGive);
+            
+            // Farmer - Bountiful Harvest passive
+            if (isCrop) {
+                com.here.hereroleplay.data.PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+                if (profile != null) {
+                    int harvestLvl = profile.getSkillLevel("Bountiful Harvest");
+                    if (harvestLvl > 0) {
+                        double doubleChance = 0.25 + (harvestLvl - 1) * 0.05;
+                        if (Math.random() < doubleChance) {
+                            for (org.bukkit.inventory.ItemStack drop : block.getDrops(player.getInventory().getItemInMainHand())) {
+                                block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                            }
+                            player.sendMessage(org.bukkit.ChatColor.GREEN + "★ Bountiful Harvest: Double Crops!");
+                            player.playSound(block.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 1f, 1.5f);
+                        }
+                    }
+                }
+            }
         }
     }
 

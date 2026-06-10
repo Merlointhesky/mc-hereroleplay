@@ -44,6 +44,14 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder setGlowing(boolean glowing) {
+        if (meta != null && glowing) {
+            meta.addEnchant(org.bukkit.enchantments.Enchantment.DURABILITY, 1, true);
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
+        }
+        return this;
+    }
+
     public ItemStack build() {
         if (meta != null) {
             item.setItemMeta(meta);

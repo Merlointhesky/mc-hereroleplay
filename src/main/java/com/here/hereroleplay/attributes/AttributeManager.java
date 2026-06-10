@@ -31,6 +31,7 @@ public class AttributeManager {
         resetBaseAttribute(player, Attribute.GENERIC_MAX_HEALTH);
         resetBaseAttribute(player, Attribute.GENERIC_MOVEMENT_SPEED);
         resetBaseAttribute(player, Attribute.GENERIC_ATTACK_DAMAGE);
+        resetBaseAttribute(player, Attribute.GENERIC_ARMOR);
 
         // Debug log all modifiers
         logAllModifiers(player, Attribute.GENERIC_MAX_HEALTH);
@@ -40,18 +41,37 @@ public class AttributeManager {
         cleanStaleModifiers(player, Attribute.GENERIC_MAX_HEALTH);
         cleanStaleModifiers(player, Attribute.GENERIC_MOVEMENT_SPEED);
         cleanStaleModifiers(player, Attribute.GENERIC_ATTACK_DAMAGE);
+        cleanStaleModifiers(player, Attribute.GENERIC_ARMOR);
 
         // Vitality -> Max Health (+1 HP per 2 points)
         double healthBonus = profile.getVitalityPoints() * 0.5;
+        // Paladin -> Guardian passive
+        int guardianLvl = profile.getSkillLevel("Guardian");
+        if (guardianLvl > 0) {
+            healthBonus += 4.0 + (guardianLvl - 1) * 1.0;
+        }
         applyModifier(player, Attribute.GENERIC_MAX_HEALTH, healthBonus);
 
         // Agility -> Movement Speed (+0.002 speed per point)
         double speedBonus = profile.getAgilityPoints() * 0.002;
+        // Engineer -> Efficiency passive
+        int efficiencyLvl = profile.getSkillLevel("Efficiency");
+        if (efficiencyLvl > 0) {
+            speedBonus += 0.01 + (efficiencyLvl - 1) * 0.0025;
+        }
         applyModifier(player, Attribute.GENERIC_MOVEMENT_SPEED, speedBonus);
 
         // Strength -> Attack Damage (+0.5 damage per point)
         double damageBonus = profile.getStrengthPoints() * 0.5;
         applyModifier(player, Attribute.GENERIC_ATTACK_DAMAGE, damageBonus);
+        
+        // Miner -> Dense Armor passive
+        double armorBonus = 0;
+        int denseArmorLvl = profile.getSkillLevel("Dense Armor");
+        if (denseArmorLvl > 0) {
+            armorBonus = 5.0 + (denseArmorLvl - 1) * 1.5;
+        }
+        applyModifier(player, Attribute.GENERIC_ARMOR, armorBonus);
         
         // Ensure their health doesn't exceed the new max
         AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
@@ -104,6 +124,8 @@ public class AttributeManager {
                 defaultValue = 20.0; // Vanilla default player max health
             } else if (attribute == Attribute.GENERIC_ATTACK_DAMAGE) {
                 defaultValue = 2.0; // Vanilla default player attack damage
+            } else if (attribute == Attribute.GENERIC_ARMOR) {
+                defaultValue = 0.0; // Vanilla default player armor
             }
             plugin.getLogger().info("[HRP] Resetting base value of " + attribute.name() + " for " + player.getName() + " to " + defaultValue + " (getDefaultValue() returned: " + instance.getDefaultValue() + ")");
             instance.setBaseValue(defaultValue);
