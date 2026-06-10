@@ -39,13 +39,15 @@ public class CollectListener implements Listener {
         Material type = block.getType();
         double xpToGive = 0;
 
-        // Simplified list of blocks that give XP
-        if (type.name().contains("LOG")) {
+        String name = type.name();
+        if (name.contains("LOG") || name.contains("WOOD")) {
             xpToGive = 1.0;
-        } else if (type == Material.COAL_ORE || type == Material.IRON_ORE || type == Material.COPPER_ORE) {
+        } else if (name.contains("COAL_ORE") || name.contains("IRON_ORE") || name.contains("COPPER_ORE") || name.contains("GOLD_ORE") || name.contains("REDSTONE_ORE") || name.contains("LAPIS_ORE")) {
             xpToGive = 5.0;
-        } else if (type == Material.DIAMOND_ORE || type == Material.EMERALD_ORE || type == Material.ANCIENT_DEBRIS) {
+        } else if (name.contains("DIAMOND_ORE") || name.contains("EMERALD_ORE") || type == Material.ANCIENT_DEBRIS || type == Material.NETHER_QUARTZ_ORE || type == Material.NETHER_GOLD_ORE) {
             xpToGive = 25.0;
+        } else if (type == Material.STONE || type == Material.DEEPSLATE || type == Material.DIRT || type == Material.GRASS_BLOCK || type == Material.SAND || type == Material.GRAVEL || type == Material.NETHERRACK || type == Material.CLAY || type == Material.TERRACOTTA) {
+            xpToGive = 0.5;
         }
 
         if (xpToGive > 0) {

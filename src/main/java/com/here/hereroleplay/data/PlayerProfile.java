@@ -31,7 +31,7 @@ public class PlayerProfile {
     private int unspentSkillPoints = 0;
 
     // Current Mana
-    private double currentMana = 100.0;
+    private double currentMana = 20.0;
 
     public PlayerProfile(UUID uuid) {
         this.uuid = uuid;

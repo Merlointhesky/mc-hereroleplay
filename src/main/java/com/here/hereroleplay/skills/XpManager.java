@@ -32,6 +32,7 @@ public class XpManager {
         if (profile == null) return;
 
         profile.setCombatXp(profile.getCombatXp() + amount);
+        plugin.getBossBarManager().showXpGain(player, "Combat", amount, profile.getCombatXp(), profile.getCombatLevel());
         checkLevelUp(player, profile, "Combat", profile.getCombatLevel(), profile.getCombatXp());
     }
 
@@ -40,6 +41,7 @@ public class XpManager {
         if (profile == null) return;
 
         profile.setCollectXp(profile.getCollectXp() + amount);
+        plugin.getBossBarManager().showXpGain(player, "Collect", amount, profile.getCollectXp(), profile.getCollectLevel());
         checkLevelUp(player, profile, "Collect", profile.getCollectLevel(), profile.getCollectXp());
     }
 
@@ -48,6 +50,7 @@ public class XpManager {
         if (profile == null) return;
 
         profile.setCraftXp(profile.getCraftXp() + amount);
+        plugin.getBossBarManager().showXpGain(player, "Craft", amount, profile.getCraftXp(), profile.getCraftLevel());
         checkLevelUp(player, profile, "Craft", profile.getCraftLevel(), profile.getCraftXp());
     }
 

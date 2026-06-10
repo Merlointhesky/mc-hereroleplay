@@ -23,6 +23,11 @@ public class AttributeManager {
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
+        // Reset base values to vanilla defaults in case they were modified by another plugin
+        resetBaseAttribute(player, Attribute.GENERIC_MAX_HEALTH);
+        resetBaseAttribute(player, Attribute.GENERIC_MOVEMENT_SPEED);
+        resetBaseAttribute(player, Attribute.GENERIC_ATTACK_DAMAGE);
+
         // Vitality -> Max Health (+1 HP per 2 points)
         double healthBonus = profile.getVitalityPoints() * 0.5;
         applyModifier(player, Attribute.GENERIC_MAX_HEALTH, healthBonus);
@@ -39,6 +44,13 @@ public class AttributeManager {
         AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (maxHealth != null && player.getHealth() > maxHealth.getValue()) {
             player.setHealth(maxHealth.getValue());
+        }
+    }
+
+    private void resetBaseAttribute(Player player, Attribute attribute) {
+        AttributeInstance instance = player.getAttribute(attribute);
+        if (instance != null) {
+            instance.setBaseValue(instance.getDefaultValue());
         }
     }
 

@@ -12,6 +12,7 @@ import com.here.hereroleplay.listeners.CollectListener;
 import com.here.hereroleplay.listeners.CombatListener;
 import com.here.hereroleplay.listeners.CraftListener;
 import com.here.hereroleplay.listeners.PlayerConnectionListener;
+import com.here.hereroleplay.skills.BossBarManager;
 import com.here.hereroleplay.skills.ManaManager;
 import com.here.hereroleplay.skills.SkillManager;
 import com.here.hereroleplay.skills.XpManager;
@@ -22,6 +23,7 @@ public final class HereRolePlay extends JavaPlugin {
     private DatabaseManager databaseManager;
     private StatisticsGenerator statisticsGenerator;
     private XpManager xpManager;
+    private BossBarManager bossBarManager;
     private AttributeManager attributeManager;
     private ManaManager manaManager;
     private ClassManager classManager;
@@ -44,6 +46,9 @@ public final class HereRolePlay extends JavaPlugin {
         
         // Initialize XP Manager
         xpManager = new XpManager(this);
+        
+        // Initialize Boss Bar Manager
+        bossBarManager = new BossBarManager(this);
         
         // Initialize Attribute & Mana Managers
         attributeManager = new AttributeManager(this);
@@ -74,6 +79,9 @@ public final class HereRolePlay extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (bossBarManager != null) {
+            bossBarManager.clearAll();
+        }
         if (manaManager != null) {
             manaManager.stop();
         }
@@ -84,6 +92,10 @@ public final class HereRolePlay extends JavaPlugin {
             databaseManager.disconnect();
         }
         getLogger().info("HereRolePlay has been disabled!");
+    }
+    
+    public BossBarManager getBossBarManager() {
+        return bossBarManager;
     }
     
     public DatabaseManager getDatabaseManager() {

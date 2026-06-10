@@ -31,8 +31,8 @@ public class ManaManager {
     }
 
     public double getMaxMana(PlayerProfile profile) {
-        // Base 100 + 10 per intelligence point
-        return 100.0 + (profile.getIntelligencePoints() * 10.0);
+        // Base 20 + 10 per intelligence point
+        return 20.0 + (profile.getIntelligencePoints() * 10.0);
     }
 
     private void regenerateMana() {
@@ -41,10 +41,13 @@ public class ManaManager {
             if (profile == null) continue;
 
             double maxMana = getMaxMana(profile);
-            if (profile.getCurrentMana() < maxMana) {
+            double currentMana = profile.getCurrentMana();
+            if (currentMana > maxMana) {
+                profile.setCurrentMana(maxMana);
+            } else if (currentMana < maxMana) {
                 // Regen 5 mana per second + 0.5 per int point
                 double regenAmount = 5.0 + (profile.getIntelligencePoints() * 0.5);
-                double newMana = Math.min(maxMana, profile.getCurrentMana() + regenAmount);
+                double newMana = Math.min(maxMana, currentMana + regenAmount);
                 profile.setCurrentMana(newMana);
             }
         }
@@ -57,6 +60,10 @@ public class ManaManager {
 
             double maxMana = getMaxMana(profile);
             double currentMana = profile.getCurrentMana();
+            if (currentMana > maxMana) {
+                currentMana = maxMana;
+                profile.setCurrentMana(currentMana);
+            }
             
             String actionbar = String.format("§b✦ Mana: %.0f / %.0f", currentMana, maxMana);
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbar));

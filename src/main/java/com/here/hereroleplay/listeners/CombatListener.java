@@ -20,37 +20,24 @@ public class CombatListener implements Listener {
     public void onEntityDeath(EntityDeathEvent event) {
         if (event.getEntity().getKiller() != null) {
             Player player = event.getEntity().getKiller();
-            ItemStack weapon = player.getInventory().getItemInMainHand();
-
-            // Very simple check for a weapon
-            if (weapon == null || !weapon.getType().name().contains("SWORD") 
-                && !weapon.getType().name().contains("AXE")
-                && !weapon.getType().name().contains("BOW")
-                && !weapon.getType().name().contains("MACE")
-                && !weapon.getType().name().contains("TRIDENT")) {
-                return;
-            }
-
-            double xpToGive = 1.0; // Tier 1 Default
+            double xpToGive = 1.0; // Tier 1 Default (Passive mobs / Animals)
 
             EntityType type = event.getEntityType();
-            switch (type) {
-                case ZOMBIE:
-                case SKELETON:
-                case SPIDER:
-                    xpToGive = 5.0; // Tier 2
-                    break;
-                case ENDERMAN:
-                case RAVAGER:
-                    xpToGive = 25.0; // Tier 3
-                    break;
-                case ENDER_DRAGON:
-                case WITHER:
-                case WARDEN:
-                    xpToGive = 250.0; // Tier 4
-                    break;
-                default:
-                    break;
+            String typeName = type.name();
+
+            // Broad check for hostile mobs / monsters
+            if (typeName.contains("ZOMBIE") || typeName.contains("SKELETON") || typeName.contains("SPIDER") ||
+                type == EntityType.CREEPER || type == EntityType.PIGLIN || type == EntityType.BLAZE ||
+                type == EntityType.GHAST || type == EntityType.SLIME || type == EntityType.MAGMA_CUBE ||
+                type == EntityType.WITCH || type == EntityType.PHANTOM || type == EntityType.DROWNED ||
+                type == EntityType.HUSK || type == EntityType.STRAY || type == EntityType.PILLAGER ||
+                type == EntityType.VINDICATOR || type == EntityType.EVOKER || type == EntityType.HOGLIN ||
+                type == EntityType.PIGLIN_BRUTE || type == EntityType.GUARDIAN || type == EntityType.ELDER_GUARDIAN) {
+                xpToGive = 5.0; // Tier 2
+            } else if (type == EntityType.ENDERMAN || type == EntityType.RAVAGER || type == EntityType.WITHER_SKELETON || type == EntityType.SHULKER) {
+                xpToGive = 25.0; // Tier 3
+            } else if (type == EntityType.ENDER_DRAGON || type == EntityType.WITHER || type == EntityType.WARDEN) {
+                xpToGive = 250.0; // Tier 4
             }
 
             plugin.getXpManager().addCombatXp(player, xpToGive);

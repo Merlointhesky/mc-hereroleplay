@@ -41,5 +41,6 @@ public class PlayerConnectionListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         // Unload and save profile when they leave
         plugin.getDatabaseManager().unloadProfile(event.getPlayer().getUniqueId());
+        plugin.getBossBarManager().removePlayer(event.getPlayer());
     }
 }
