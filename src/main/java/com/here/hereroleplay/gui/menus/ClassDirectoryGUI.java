@@ -48,6 +48,18 @@ public class ClassDirectoryGUI implements CustomGUI {
             
             int slot = hrpClass.isHero() ? heroSlot++ : baseSlot++;
             
+            int currentStr = profile.getStrengthPoints();
+            int currentAgi = profile.getAgilityPoints();
+            int currentVit = profile.getVitalityPoints();
+            int currentInt = profile.getIntelligencePoints();
+            int currentTotal = currentStr + currentAgi + currentVit + currentInt;
+            
+            int reqStr = hrpClass.getReqStrength();
+            int reqAgi = hrpClass.getReqAgility();
+            int reqVit = hrpClass.getReqVitality();
+            int reqInt = hrpClass.getReqIntelligence();
+            int reqTotal = hrpClass.getReqTotalPoints();
+
             inventory.setItem(slot, new ItemBuilder(mat)
                     .setName("&6" + hrpClass.getName())
                     .setGlowing(unlocked)
@@ -55,11 +67,11 @@ public class ClassDirectoryGUI implements CustomGUI {
                         "&7" + hrpClass.getDescription(),
                         "",
                         "&eRequirements:",
-                        "&7Strength: " + hrpClass.getReqStrength(),
-                        "&7Agility: " + hrpClass.getReqAgility(),
-                        "&7Vitality: " + hrpClass.getReqVitality(),
-                        "&7Intelligence: " + hrpClass.getReqIntelligence(),
-                        "&7Total Points: " + hrpClass.getReqTotalPoints(),
+                        "&7Strength: " + (currentStr >= reqStr ? "&a" : "&c") + currentStr + " / " + reqStr,
+                        "&7Agility: " + (currentAgi >= reqAgi ? "&a" : "&c") + currentAgi + " / " + reqAgi,
+                        "&7Vitality: " + (currentVit >= reqVit ? "&a" : "&c") + currentVit + " / " + reqVit,
+                        "&7Intelligence: " + (currentInt >= reqInt ? "&a" : "&c") + currentInt + " / " + reqInt,
+                        "&7Total Points: " + (currentTotal >= reqTotal ? "&a" : "&c") + currentTotal + " / " + reqTotal,
                         "",
                         "&fStatus: " + status
                     ).build());

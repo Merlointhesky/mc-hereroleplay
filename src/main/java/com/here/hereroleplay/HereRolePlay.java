@@ -65,7 +65,22 @@ public final class HereRolePlay extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CraftListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(new SkillManager(this), this);
+        getServer().getPluginManager().registerEvents(attributeManager, this);
         
+        // Haste Task for Engineer Efficiency (every 5 seconds)
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
+                com.here.hereroleplay.data.PlayerProfile profile = databaseManager.getProfile(player.getUniqueId());
+                if (profile != null) {
+                    int efficiencyLvl = profile.getSkillLevel("Efficiency");
+                    if (efficiencyLvl > 0) {
+                        int amp = (efficiencyLvl - 1) / 10;
+                        player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FAST_DIGGING, 160, amp, true, false, true));
+                    }
+                }
+            }
+        }, 100L, 100L);
+
         // Register Commands
         getCommand("hrp").setExecutor(new HrpCommand(this));
         

@@ -1,6 +1,7 @@
 package com.here.hereroleplay.listeners;
 
 import com.here.hereroleplay.HereRolePlay;
+import com.here.hereroleplay.data.PlayerProfile;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -11,6 +12,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerItemMendEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
 public class CollectListener implements Listener {
@@ -81,11 +84,11 @@ public class CollectListener implements Listener {
             
             // Farmer - Bountiful Harvest passive
             if (isCrop) {
-                com.here.hereroleplay.data.PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+                PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
                 if (profile != null) {
                     int harvestLvl = profile.getSkillLevel("Bountiful Harvest");
                     if (harvestLvl > 0) {
-                        double doubleChance = 0.25 + (harvestLvl - 1) * 0.05;
+                        double doubleChance = harvestLvl * 0.01;
                         if (Math.random() < doubleChance) {
                             for (org.bukkit.inventory.ItemStack drop : block.getDrops(player.getInventory().getItemInMainHand())) {
                                 block.getWorld().dropItemNaturally(block.getLocation(), drop);
@@ -104,6 +107,35 @@ public class CollectListener implements Listener {
         if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
             Player player = event.getPlayer();
             plugin.getXpManager().addCollectXp(player, 10.0);
+        }
+    }
+
+    @EventHandler
+    public void onItemDamage(PlayerItemDamageEvent event) {
+        Player player = event.getPlayer();
+        PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+        if (profile != null) {
+            int hackerLvl = profile.getSkillLevel("Hacker");
+            if (hackerLvl > 0) {
+                double ignoreChance = hackerLvl * 0.01;
+                if (Math.random() < ignoreChance) {
+                    event.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onItemMend(PlayerItemMendEvent event) {
+        Player player = event.getPlayer();
+        PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+        if (profile != null) {
+            int repairLvl = profile.getSkillLevel("Repair");
+            if (repairLvl > 0) {
+                double multiplier = 1.0 + repairLvl * 0.01;
+                int originalAmount = event.getRepairAmount();
+                event.setRepairAmount((int) Math.round(originalAmount * multiplier));
+            }
         }
     }
 }

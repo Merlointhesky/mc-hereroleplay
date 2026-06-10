@@ -47,6 +47,10 @@ public class ManaManager {
             } else if (currentMana < maxMana) {
                 // Regen 5 mana per second + 0.5 per int point
                 double regenAmount = 5.0 + (profile.getIntelligencePoints() * 0.5);
+                int spellEchoLvl = profile.getSkillLevel("Spell Echo");
+                if (spellEchoLvl > 0) {
+                    regenAmount *= (1.0 + spellEchoLvl * 0.01);
+                }
                 double newMana = Math.min(maxMana, currentMana + regenAmount);
                 profile.setCurrentMana(newMana);
             }

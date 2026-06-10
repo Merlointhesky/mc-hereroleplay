@@ -50,6 +50,17 @@ public class CombatListener implements Listener {
     public void onEntityDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
+            
+            // Miner - Dense Armor damage reduction passive
+            PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+            if (profile != null) {
+                int denseArmorLvl = profile.getSkillLevel("Dense Armor");
+                if (denseArmorLvl > 0) {
+                    double reduction = denseArmorLvl * 0.01;
+                    event.setDamage(event.getDamage() * (1.0 - reduction));
+                }
+            }
+            
             double damage = event.getFinalDamage();
             if (damage > 0) {
                 // 1 heart = 2 damage points = 1 XP
@@ -81,7 +92,7 @@ public class CombatListener implements Listener {
             // Heavy Strike passive (Warrior)
             int heavyStrikeLvl = profile.getSkillLevel("Heavy Strike");
             if (heavyStrikeLvl > 0) {
-                double multiplier = 1.20 + (heavyStrikeLvl - 1) * 0.05;
+                double multiplier = 1.0 + heavyStrikeLvl * 0.01;
                 event.setDamage(event.getDamage() * multiplier);
             }
         }
@@ -90,9 +101,11 @@ public class CombatListener implements Listener {
             // Precision passive (Ranger)
             int precisionLvl = profile.getSkillLevel("Precision");
             if (precisionLvl > 0) {
-                double critChance = 0.15 + (precisionLvl - 1) * 0.03;
+                double critChance = precisionLvl * 0.01;
                 if (Math.random() < critChance) {
-                    event.setDamage(event.getDamage() * 1.5);
+                    int critDamageLvl = profile.getSkillLevel("Critical Damage");
+                    double critMultiplier = 1.5 + critDamageLvl * 0.01;
+                    event.setDamage(event.getDamage() * critMultiplier);
                     player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1f, 1.2f);
                     event.getEntity().getWorld().spawnParticle(org.bukkit.Particle.CRIT, event.getEntity().getLocation().add(0, 1, 0), 10, 0.2, 0.5, 0.2, 0.1);
                     player.sendMessage("§a★ Precision Critical Strike!");

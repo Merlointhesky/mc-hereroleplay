@@ -81,49 +81,55 @@ public class ClassManager {
 
     private void registerSkills() {
         // Warrior
-        activeSkills.add(new ActiveSkill("Cleave", "Warrior", "Press [F] with Sword", 30, "Sweep attack dealing AoE damage."));
-        passiveSkills.add(new PassiveSkill("Heavy Strike", "Warrior", "+20% Melee Damage"));
+        activeSkills.add(new ActiveSkill("Cleave", "Warrior", "Sword in hand, press [F]", 30, "Sweep attack dealing AoE damage."));
+        passiveSkills.add(new PassiveSkill("Heavy Strike", "Warrior", "+1% melee damage per level"));
+        passiveSkills.add(new PassiveSkill("Swift Strike", "Warrior", "+1% melee speed per level"));
 
         // Ranger
-        activeSkills.add(new ActiveSkill("Quick Shot", "Ranger", "Swap Hand/Right Click with Bow", 20, "Rapid arrows firing."));
-        passiveSkills.add(new PassiveSkill("Precision", "Ranger", "+15% Crit Chance"));
+        activeSkills.add(new ActiveSkill("Quick Shot", "Ranger", "Bow in hand, press [F]", 20, "Fires a rapid sequence of arrows."));
+        passiveSkills.add(new PassiveSkill("Precision", "Ranger", "+1% critical strike chance per level"));
+        passiveSkills.add(new PassiveSkill("Critical Damage", "Ranger", "+1% critical strike damage per level"));
 
         // Wizard
-        activeSkills.add(new ActiveSkill("Arcane Missile", "Wizard", "Press [F] with Stick", 15, "Shoot magical missile projectile."));
-        activeSkills.add(new ActiveSkill("Fireball", "Wizard", "Press [F] with Blaze Rod", 25, "Shoot explosive fireball projectile."));
-        passiveSkills.add(new PassiveSkill("Spell Echo", "Wizard", "+20% Mana Regeneration"));
+        activeSkills.add(new ActiveSkill("Arcane Missile", "Wizard", "Stick in hand, press [F]", 15, "Shoots a magical missile dealing damage."));
+        activeSkills.add(new ActiveSkill("Fireball", "Wizard", "Stick in hand, right click", 25, "Shoots an explosive fireball."));
+        passiveSkills.add(new PassiveSkill("Spell Echo", "Wizard", "+1% mana regeneration rate per level"));
 
         // Miner
-        activeSkills.add(new ActiveSkill("Timber", "Miner", "Shift-Right Click Log with Axe", 20, "Instantly break column of logs."));
-        passiveSkills.add(new PassiveSkill("Dense Armor", "Miner", "+5 Armor points"));
+        activeSkills.add(new ActiveSkill("Timber", "Miner", "Axe in hand, Sneak + Right Click log", 20, "Instantly breaks columns of logs."));
+        activeSkills.add(new ActiveSkill("Diggy Diggy Hole", "Miner", "Shovel in hand, Sneak + Right Click Dirt/Gravel/Sand", 20, "Instantly breaks blocks in a circle around the broken block."));
+        activeSkills.add(new ActiveSkill("Tunnel Vision", "Miner", "Pickaxe in hand, Sneak + Right Click mine-able block", 20, "Instantly breaks blocks in a 3x3 square forward."));
+        passiveSkills.add(new PassiveSkill("Dense Armor", "Miner", "+1% damage reduction per level"));
 
         // Farmer
-        activeSkills.add(new ActiveSkill("Rejuvenation", "Farmer", "Shift-Right Click with Hoe", 25, "AoE heal self and nearby entities."));
-        passiveSkills.add(new PassiveSkill("Bountiful Harvest", "Farmer", "+25% double crop yield"));
+        activeSkills.add(new ActiveSkill("Rejuvenation", "Farmer", "Hoe in hand, Sneak + Right Click", 25, "AoE apply bonemeal if near crops, otherwise heals."));
+        passiveSkills.add(new PassiveSkill("Bountiful Harvest", "Farmer", "+1% double crop chance per level"));
 
         // Engineer
-        activeSkills.add(new ActiveSkill("Overload", "Engineer", "Right Click with Redstone", 15, "Gain speed burst."));
-        passiveSkills.add(new PassiveSkill("Efficiency", "Engineer", "+10% Movement Speed"));
+        passiveSkills.add(new PassiveSkill("Efficiency", "Engineer", "Applies additional Efficiency effect on tools used (+1% per level)"));
+        passiveSkills.add(new PassiveSkill("Hacker", "Engineer", "Applies additional Durability on tools used (+1% per level)"));
+        passiveSkills.add(new PassiveSkill("Repair", "Engineer", "Increases mending and repair amounts (+1% per level)"));
+        passiveSkills.add(new PassiveSkill("Power Surge", "Engineer", "Increases vehicle/mount speed (+1% per level)"));
 
         // Paladin
-        activeSkills.add(new ActiveSkill("Aegis", "Paladin", "Shift-Right Click with Shield", 40, "Absorbs next damage hit."));
-        activeSkills.add(new ActiveSkill("Holy Nova", "Paladin", "Press [F] with Gold Sword", 35, "AoE heal and damage."));
-        passiveSkills.add(new PassiveSkill("Guardian", "Paladin", "+20% Max Health"));
+        activeSkills.add(new ActiveSkill("Aegis", "Paladin", "Shield in hand, Sneak + Right Click", 40, "Invulnerability for a duration."));
+        activeSkills.add(new ActiveSkill("Holy Nova", "Paladin", "Gold Sword in hand, press [F]", 35, "AoE healing for allies and damage to monsters."));
+        passiveSkills.add(new PassiveSkill("Guardian", "Paladin", "+1 heart max health per level"));
 
         // Landlord
-        activeSkills.add(new ActiveSkill("Transmutation", "Landlord", "Right Click Stone/Cobble with Iron Ingot", 30, "Turns block to ore."));
-        passiveSkills.add(new PassiveSkill("Domain Lord", "Landlord", "No fall damage"));
+        activeSkills.add(new ActiveSkill("Transmutation", "Landlord", "Sneak + Right Click any blocks", 30, "Converts target block and nearby blocks."));
+        passiveSkills.add(new PassiveSkill("Domain Lord", "Landlord", "+1% fall damage reduction per level"));
 
         // Alchemist
-        activeSkills.add(new ActiveSkill("Brew Burst", "Alchemist", "Right Click with Brewing Stand", 25, "Throws splash healing/buff potion."));
-        passiveSkills.add(new PassiveSkill("Catalyst", "Alchemist", "+30% Potion Duration"));
+        passiveSkills.add(new PassiveSkill("Catalyst", "Alchemist", "+1% potion duration per level"));
+        passiveSkills.add(new PassiveSkill("Master of the Craft", "Alchemist", "Doubles enchants and potions created"));
     }
 
     public List<ActiveSkill> getUnlockedActiveSkills(PlayerProfile profile) {
         List<ActiveSkill> unlocked = new ArrayList<>();
         boolean hasAdmin = profile.getUnlockedClasses().contains("Admin Class");
         for (ActiveSkill skill : activeSkills) {
-            if (hasAdmin || profile.getUnlockedClasses().contains(skill.getClassName())) {
+            if (hasAdmin || (profile.getUnlockedClasses().contains(skill.getClassName()) && profile.getSkillLevel(skill.getName()) >= 1)) {
                 unlocked.add(skill);
             }
         }
@@ -134,7 +140,7 @@ public class ClassManager {
         List<PassiveSkill> unlocked = new ArrayList<>();
         boolean hasAdmin = profile.getUnlockedClasses().contains("Admin Class");
         for (PassiveSkill skill : passiveSkills) {
-            if (hasAdmin || profile.getUnlockedClasses().contains(skill.getClassName())) {
+            if (hasAdmin || (profile.getUnlockedClasses().contains(skill.getClassName()) && profile.getSkillLevel(skill.getName()) >= 1)) {
                 unlocked.add(skill);
             }
         }

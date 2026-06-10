@@ -5,15 +5,22 @@ import com.here.hereroleplay.data.PlayerProfile;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.event.entity.EntityDismountEvent;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
 
 import java.util.UUID;
 
-public class AttributeManager {
+public class AttributeManager implements Listener {
 
     private final HereRolePlay plugin;
-    // We use a specific UUID for our modifiers so we can find and remove them easily
     private static final UUID HRP_MODIFIER_UUID = UUID.fromString("11111111-2222-3333-4444-555555555555");
+    private static final UUID HRP_SPEED_MODIFIER_UUID = UUID.fromString("22222222-3333-4444-5555-666666666666");
 
     public AttributeManager(HereRolePlay plugin) {
         this.plugin = plugin;
@@ -23,70 +30,53 @@ public class AttributeManager {
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
-        // Reset walk speed and fly speed to vanilla defaults in case they were modified by another plugin
+        // Reset speeds
         player.setWalkSpeed(0.2f);
         player.setFlySpeed(0.1f);
 
-        // Reset base values to vanilla defaults in case they were modified by another plugin
+        // Reset attributes
         resetBaseAttribute(player, Attribute.GENERIC_MAX_HEALTH);
         resetBaseAttribute(player, Attribute.GENERIC_MOVEMENT_SPEED);
         resetBaseAttribute(player, Attribute.GENERIC_ATTACK_DAMAGE);
         resetBaseAttribute(player, Attribute.GENERIC_ARMOR);
+        resetBaseAttribute(player, Attribute.GENERIC_ATTACK_SPEED);
 
-        // Debug log all modifiers
-        logAllModifiers(player, Attribute.GENERIC_MAX_HEALTH);
-        logAllModifiers(player, Attribute.GENERIC_MOVEMENT_SPEED);
-
-        // Clean up stale modifiers from disabled plugins (e.g. AuraSkills)
+        // Clean stale modifiers
         cleanStaleModifiers(player, Attribute.GENERIC_MAX_HEALTH);
         cleanStaleModifiers(player, Attribute.GENERIC_MOVEMENT_SPEED);
         cleanStaleModifiers(player, Attribute.GENERIC_ATTACK_DAMAGE);
         cleanStaleModifiers(player, Attribute.GENERIC_ARMOR);
+        cleanStaleModifiers(player, Attribute.GENERIC_ATTACK_SPEED);
 
         // Vitality -> Max Health (+1 HP per 2 points)
         double healthBonus = profile.getVitalityPoints() * 0.5;
-        // Paladin -> Guardian passive
+        // Paladin -> Guardian passive (+1 heart / 2.0 HP per level)
         int guardianLvl = profile.getSkillLevel("Guardian");
         if (guardianLvl > 0) {
-            healthBonus += 4.0 + (guardianLvl - 1) * 1.0;
+            healthBonus += guardianLvl * 2.0;
         }
         applyModifier(player, Attribute.GENERIC_MAX_HEALTH, healthBonus);
 
         // Agility -> Movement Speed (+0.002 speed per point)
         double speedBonus = profile.getAgilityPoints() * 0.002;
-        // Engineer -> Efficiency passive
-        int efficiencyLvl = profile.getSkillLevel("Efficiency");
-        if (efficiencyLvl > 0) {
-            speedBonus += 0.01 + (efficiencyLvl - 1) * 0.0025;
-        }
         applyModifier(player, Attribute.GENERIC_MOVEMENT_SPEED, speedBonus);
 
         // Strength -> Attack Damage (+0.5 damage per point)
         double damageBonus = profile.getStrengthPoints() * 0.5;
         applyModifier(player, Attribute.GENERIC_ATTACK_DAMAGE, damageBonus);
-        
-        // Miner -> Dense Armor passive
-        double armorBonus = 0;
-        int denseArmorLvl = profile.getSkillLevel("Dense Armor");
-        if (denseArmorLvl > 0) {
-            armorBonus = 5.0 + (denseArmorLvl - 1) * 1.5;
+
+        // Warrior -> Swift Strike (+1% attack speed per level, default base is 4.0)
+        int swiftStrikeLvl = profile.getSkillLevel("Swift Strike");
+        double attackSpeedBonus = 0.0;
+        if (swiftStrikeLvl > 0) {
+            attackSpeedBonus = swiftStrikeLvl * 0.01 * 4.0;
         }
-        applyModifier(player, Attribute.GENERIC_ARMOR, armorBonus);
+        applyModifier(player, Attribute.GENERIC_ATTACK_SPEED, attackSpeedBonus);
         
-        // Ensure their health doesn't exceed the new max
+        // Ensure health doesn't exceed the new max
         AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (maxHealth != null && player.getHealth() > maxHealth.getValue()) {
             player.setHealth(maxHealth.getValue());
-        }
-    }
-
-    private void logAllModifiers(Player player, Attribute attribute) {
-        AttributeInstance instance = player.getAttribute(attribute);
-        if (instance != null) {
-            plugin.getLogger().info("DEBUG Modifiers on " + player.getName() + " for " + attribute.name() + " (Base: " + instance.getBaseValue() + "):");
-            for (AttributeModifier modifier : instance.getModifiers()) {
-                plugin.getLogger().info("  - Name: " + modifier.getName() + ", UUID: " + modifier.getUniqueId() + ", Amount: " + modifier.getAmount() + ", Operation: " + modifier.getOperation());
-            }
         }
     }
 
@@ -98,18 +88,15 @@ public class AttributeManager {
             UUID uuid = modifier.getUniqueId();
             String name = modifier.getName().toLowerCase();
             
-            // Keep our own HRP modifier
             if (uuid.equals(HRP_MODIFIER_UUID)) {
                 continue;
             }
             
-            // Keep standard vanilla item modifiers (their names contain "modifier" / "armor" / "toughness" / "weapon" / "attack" / "drag")
             if (name.contains("modifier") || name.startsWith("minecraft:") || name.equals("armor") || name.equals("toughness") || name.contains("attack")) {
                 continue;
             }
             
-            // Otherwise, it's a stale modifier from a disabled plugin (like AuraSkills)
-            plugin.getLogger().info("Removing stale attribute modifier from " + player.getName() + " on " + attribute.name() + ": " + modifier.getName() + " (UUID: " + uuid + ", Amount: " + modifier.getAmount() + ")");
+            plugin.getLogger().info("Removing stale attribute modifier from " + player.getName() + " on " + attribute.name() + ": " + modifier.getName() + " (UUID: " + uuid + ")");
             instance.removeModifier(modifier);
         }
     }
@@ -119,15 +106,16 @@ public class AttributeManager {
         if (instance != null) {
             double defaultValue = instance.getDefaultValue();
             if (attribute == Attribute.GENERIC_MOVEMENT_SPEED) {
-                defaultValue = 0.1; // Vanilla default player speed
+                defaultValue = 0.1;
             } else if (attribute == Attribute.GENERIC_MAX_HEALTH) {
-                defaultValue = 20.0; // Vanilla default player max health
+                defaultValue = 20.0;
             } else if (attribute == Attribute.GENERIC_ATTACK_DAMAGE) {
-                defaultValue = 2.0; // Vanilla default player attack damage
+                defaultValue = 2.0;
             } else if (attribute == Attribute.GENERIC_ARMOR) {
-                defaultValue = 0.0; // Vanilla default player armor
+                defaultValue = 0.0;
+            } else if (attribute == Attribute.GENERIC_ATTACK_SPEED) {
+                defaultValue = 4.0;
             }
-            plugin.getLogger().info("[HRP] Resetting base value of " + attribute.name() + " for " + player.getName() + " to " + defaultValue + " (getDefaultValue() returned: " + instance.getDefaultValue() + ")");
             instance.setBaseValue(defaultValue);
         }
     }
@@ -136,17 +124,89 @@ public class AttributeManager {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
 
-        // Remove old modifier if it exists
         for (AttributeModifier modifier : instance.getModifiers()) {
             if (modifier.getUniqueId().equals(HRP_MODIFIER_UUID)) {
                 instance.removeModifier(modifier);
             }
         }
 
-        // Apply new modifier if amount > 0
         if (amount > 0) {
             AttributeModifier modifier = new AttributeModifier(HRP_MODIFIER_UUID, "HRP_Bonus", amount, AttributeModifier.Operation.ADD_NUMBER);
             instance.addModifier(modifier);
+        }
+    }
+
+    @EventHandler
+    public void onMount(EntityMountEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+            if (profile != null) {
+                int level = profile.getSkillLevel("Power Surge");
+                if (level > 0) {
+                    Entity mount = event.getMount();
+                    if (mount instanceof LivingEntity livingMount) {
+                        AttributeInstance speedAttr = livingMount.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                        if (speedAttr != null) {
+                            for (AttributeModifier modifier : new java.util.ArrayList<>(speedAttr.getModifiers())) {
+                                if (modifier.getUniqueId().equals(HRP_SPEED_MODIFIER_UUID)) {
+                                    speedAttr.removeModifier(modifier);
+                                }
+                            }
+                            double bonus = speedAttr.getBaseValue() * (level * 0.01);
+                            AttributeModifier modifier = new AttributeModifier(HRP_SPEED_MODIFIER_UUID, "PowerSurgeMountSpeed", bonus, AttributeModifier.Operation.ADD_NUMBER);
+                            speedAttr.addModifier(modifier);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onDismount(EntityDismountEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            Entity mount = event.getDismounted();
+            if (mount instanceof LivingEntity livingMount) {
+                AttributeInstance speedAttr = livingMount.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                if (speedAttr != null) {
+                    for (AttributeModifier modifier : new java.util.ArrayList<>(speedAttr.getModifiers())) {
+                        if (modifier.getUniqueId().equals(HRP_SPEED_MODIFIER_UUID)) {
+                            speedAttr.removeModifier(modifier);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onVehicleMove(VehicleMoveEvent event) {
+        org.bukkit.entity.Vehicle vehicle = event.getVehicle();
+        if (vehicle.getPassengers().isEmpty()) return;
+        Entity passenger = vehicle.getPassengers().get(0);
+        if (passenger instanceof Player player) {
+            PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+            if (profile != null) {
+                int level = profile.getSkillLevel("Power Surge");
+                if (level > 0) {
+                    double multiplier = 1.0 + level * 0.01;
+                    if (vehicle instanceof org.bukkit.entity.Minecart minecart) {
+                        double defaultMax = 0.4;
+                        minecart.setMaxSpeed(defaultMax * multiplier);
+                    } else if (vehicle instanceof org.bukkit.entity.Boat boat) {
+                        org.bukkit.util.Vector vel = boat.getVelocity();
+                        double horizontalSpeed = Math.sqrt(vel.getX() * vel.getX() + vel.getZ() * vel.getZ());
+                        if (horizontalSpeed > 0.05 && horizontalSpeed < 2.0) {
+                            double maxSpeed = 0.5 * multiplier; 
+                            if (horizontalSpeed < maxSpeed) {
+                                vel.setX(vel.getX() * multiplier);
+                                vel.setZ(vel.getZ() * multiplier);
+                                boat.setVelocity(vel);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
