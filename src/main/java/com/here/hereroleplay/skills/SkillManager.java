@@ -85,7 +85,7 @@ public class SkillManager implements Listener {
                     executeRejuvenation(player, profile);
                 } else if (event != null && event.getClickedBlock() != null) {
                     Block clickedBlock = event.getClickedBlock();
-                    if (handItemName.contains("AXE") && clickedBlock.getType().name().contains("LOG")) {
+                    if (handItemName.contains("AXE") && org.bukkit.Tag.LOGS.isTagged(clickedBlock.getType())) {
                         executeTimber(player, profile);
                     } else if (handItemName.contains("SHOVEL") && isShovellable(clickedBlock.getType())) {
                         executeDiggyDiggyHole(player, profile, clickedBlock);
@@ -118,7 +118,7 @@ public class SkillManager implements Listener {
         }
         
         Block targetBlock = player.getTargetBlockExact(5);
-        if (targetBlock != null && targetBlock.getType().name().contains("LOG")) {
+        if (targetBlock != null && org.bukkit.Tag.LOGS.isTagged(targetBlock.getType())) {
             profile.setCurrentMana(profile.getCurrentMana() - cost);
             player.sendMessage(ChatColor.GREEN + "You used " + ChatColor.DARK_GREEN + "Timber" + ChatColor.GREEN + "!");
             player.playSound(player.getLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1f, 1f);
@@ -126,7 +126,7 @@ public class SkillManager implements Listener {
             int broken = 0;
             int maxBroken = 10 + (level - 1) * 3;
             Location loc = targetBlock.getLocation();
-            while (loc.getBlock().getType().name().contains("LOG") && broken < maxBroken) {
+            while (org.bukkit.Tag.LOGS.isTagged(loc.getBlock().getType()) && broken < maxBroken) {
                 loc.getBlock().breakNaturally(player.getInventory().getItemInMainHand());
                 loc.add(0, 1, 0);
                 broken++;
@@ -655,19 +655,12 @@ public class SkillManager implements Listener {
     }
 
     private boolean isShovellable(Material mat) {
-        String name = mat.name();
-        return name.contains("DIRT") || name.contains("GRASS") || name.contains("GRAVEL") || 
-               name.contains("SAND") || name.contains("CLAY") || name.contains("SOIL") || 
-               name.contains("MUD") || name.contains("FARMLAND") || name.contains("PATH");
+        return org.bukkit.Tag.MINEABLE_SHOVEL.isTagged(mat);
     }
 
     private boolean isMineable(Material mat) {
         if (mat == Material.AIR || mat == Material.BEDROCK || mat == Material.BARRIER) return false;
-        String name = mat.name();
-        return name.contains("ORE") || name.contains("STONE") || name.contains("DEEPSLATE") || 
-               name.contains("ANDESITE") || name.contains("DIORITE") || name.contains("GRANITE") || 
-               name.contains("TUFF") || name.contains("NETHERRACK") || name.contains("BASALT") || 
-               name.contains("BLACKSTONE") || name.contains("OBSIDIAN") || mat == Material.COBBLESTONE;
+        return org.bukkit.Tag.MINEABLE_PICKAXE.isTagged(mat);
     }
 
     private boolean isCropBlock(Material mat) {

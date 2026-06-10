@@ -36,44 +36,83 @@ public class CollectListener implements Listener {
         Block block = event.getBlock();
         Player player = event.getPlayer();
 
+        Material type = block.getType();
+        boolean isSeedCrop = (type == Material.WHEAT || type == Material.CARROTS || type == Material.POTATOES || 
+                              type == Material.BEETROOTS || type == Material.COCOA || type == Material.NETHER_WART || 
+                              type == Material.SWEET_BERRY_BUSH || type == Material.TORCHFLOWER_CROP || 
+                              type == Material.PITCHER_CROP);
+
         // Check for player-placed metadata to avoid exploits
         if (block.hasMetadata(PLACED_META)) {
-            block.removeMetadata(PLACED_META, plugin);
-            return;
+            if (isSeedCrop) {
+                block.removeMetadata(PLACED_META, plugin);
+            } else {
+                block.removeMetadata(PLACED_META, plugin);
+                return;
+            }
         }
 
-        Material type = block.getType();
         double xpToGive = 0;
         boolean isCrop = false;
+        String name = type.name();
 
-        // Farming crops check
-        if (type == Material.WHEAT || type == Material.CARROTS || type == Material.POTATOES || 
-            type == Material.BEETROOTS || type == Material.COCOA || type == Material.NETHER_WART || 
-            type == Material.SWEET_BERRY_BUSH) {
+        // Foliage check
+        boolean isFoliage = org.bukkit.Tag.FLOWERS.isTagged(type) || 
+                            org.bukkit.Tag.LEAVES.isTagged(type) ||
+                            name.contains("GRASS") || name.contains("FERN") || name.contains("VINE") || 
+                            name.contains("MOSS") || name.contains("ROOTS") || name.contains("LICHEN") || 
+                            name.contains("PETALS") || name.contains("SPROUTS") || name.contains("DRIPLEAF") ||
+                            type == Material.LILY_PAD || type == Material.SPORE_BLOSSOM;
+
+        if (isFoliage) {
+            isCrop = true;
+            xpToGive = 1.0;
+        } else if (type == Material.WHEAT || type == Material.CARROTS || type == Material.POTATOES || 
+            type == Material.BEETROOTS || type == Material.COCOA || type == Material.SWEET_BERRY_BUSH) {
             isCrop = true;
             BlockData blockData = block.getBlockData();
             if (blockData instanceof Ageable ageable) {
-                // Ensure the crop is fully ripe
                 if (ageable.getAge() == ageable.getMaximumAge()) {
-                    xpToGive = 3.0; // Farming base XP
+                    xpToGive = 1.0;
+                }
+            }
+        } else if (type == Material.NETHER_WART) {
+            isCrop = true;
+            BlockData blockData = block.getBlockData();
+            if (blockData instanceof Ageable ageable) {
+                if (ageable.getAge() == ageable.getMaximumAge()) {
+                    xpToGive = 1.5;
                 }
             }
         } else if (type == Material.MELON || type == Material.PUMPKIN) {
             isCrop = true;
-            xpToGive = 3.0; // Pumpkin/melon block breaks
+            xpToGive = 1.5;
+        } else if (type == Material.TORCHFLOWER_CROP || type == Material.PITCHER_CROP) {
+            isCrop = true;
+            BlockData blockData = block.getBlockData();
+            if (blockData instanceof Ageable ageable) {
+                if (ageable.getAge() == ageable.getMaximumAge()) {
+                    xpToGive = 2.0;
+                }
+            }
         } else if (type == Material.SUGAR_CANE || type == Material.CACTUS || type == Material.BAMBOO) {
             isCrop = true;
-            xpToGive = 1.0; // Individual vertical growth blocks
+            xpToGive = 1.0;
         }
 
         if (!isCrop) {
-            String name = type.name();
-            if (name.contains("LOG") || name.contains("WOOD")) {
-                xpToGive = 2.0;
-            } else if (name.contains("COAL_ORE") || name.contains("IRON_ORE") || name.contains("COPPER_ORE") || name.contains("GOLD_ORE") || name.contains("REDSTONE_ORE") || name.contains("LAPIS_ORE")) {
-                xpToGive = 5.0;
-            } else if (name.contains("DIAMOND_ORE") || name.contains("EMERALD_ORE") || type == Material.ANCIENT_DEBRIS || type == Material.NETHER_QUARTZ_ORE || type == Material.NETHER_GOLD_ORE) {
-                xpToGive = 25.0;
+            if (org.bukkit.Tag.LOGS.isTagged(type)) {
+                if (name.contains("PALE_OAK")) {
+                    xpToGive = 4.0;
+                } else if (name.contains("CRIMSON") || name.contains("WARPED")) {
+                    xpToGive = 3.0;
+                } else {
+                    xpToGive = 2.0;
+                }
+            } else if (name.contains("COAL_ORE") || name.contains("IRON_ORE") || name.contains("COPPER_ORE") || name.contains("GOLD_ORE") || name.contains("REDSTONE_ORE") || name.contains("LAPIS_ORE") || name.contains("NETHER_GOLD_ORE") || name.contains("QUARTZ_ORE")) {
+                xpToGive = 7.5;
+            } else if (name.contains("DIAMOND_ORE") || name.contains("EMERALD_ORE") || type == Material.ANCIENT_DEBRIS) {
+                xpToGive = 50.0;
             } else if (org.bukkit.Tag.MINEABLE_PICKAXE.isTagged(type) || org.bukkit.Tag.MINEABLE_SHOVEL.isTagged(type)) {
                 xpToGive = 2.0;
             }
