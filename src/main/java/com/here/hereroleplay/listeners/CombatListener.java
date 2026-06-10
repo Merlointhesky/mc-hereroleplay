@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class CombatListener implements Listener {
@@ -41,6 +42,19 @@ public class CombatListener implements Listener {
             }
 
             plugin.getXpManager().addCombatXp(player, xpToGive);
+        }
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player) {
+            Player player = (Player) event.getEntity();
+            double damage = event.getFinalDamage();
+            if (damage > 0) {
+                // 1 heart = 2 damage points = 1 XP
+                double xpToGive = damage / 2.0;
+                plugin.getXpManager().addCombatXp(player, xpToGive);
+            }
         }
     }
 }

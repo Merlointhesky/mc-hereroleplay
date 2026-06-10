@@ -41,13 +41,13 @@ public class CollectListener implements Listener {
 
         String name = type.name();
         if (name.contains("LOG") || name.contains("WOOD")) {
-            xpToGive = 1.0;
+            xpToGive = 2.0;
         } else if (name.contains("COAL_ORE") || name.contains("IRON_ORE") || name.contains("COPPER_ORE") || name.contains("GOLD_ORE") || name.contains("REDSTONE_ORE") || name.contains("LAPIS_ORE")) {
             xpToGive = 5.0;
         } else if (name.contains("DIAMOND_ORE") || name.contains("EMERALD_ORE") || type == Material.ANCIENT_DEBRIS || type == Material.NETHER_QUARTZ_ORE || type == Material.NETHER_GOLD_ORE) {
             xpToGive = 25.0;
-        } else if (type == Material.STONE || type == Material.DEEPSLATE || type == Material.DIRT || type == Material.GRASS_BLOCK || type == Material.SAND || type == Material.GRAVEL || type == Material.NETHERRACK || type == Material.CLAY || type == Material.TERRACOTTA) {
-            xpToGive = 0.5;
+        } else if (org.bukkit.Tag.MINEABLE_PICKAXE.isTagged(type) || org.bukkit.Tag.MINEABLE_SHOVEL.isTagged(type)) {
+            xpToGive = 2.0;
         }
 
         if (xpToGive > 0) {
