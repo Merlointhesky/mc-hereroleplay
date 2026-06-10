@@ -126,6 +126,16 @@ public class AllocationGUI implements CustomGUI {
             // Check for new class unlocks
             plugin.getClassManager().checkUnlocks(player);
             
+            // Save profile immediately
+            plugin.getDatabaseManager().saveProfile(profile);
+            
+            // Generate updated stats report immediately in the background
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                if (plugin.getStatisticsGenerator() != null) {
+                    plugin.getStatisticsGenerator().generateReport();
+                }
+            });
+            
             // Redraw GUI
             setupItems();
         }

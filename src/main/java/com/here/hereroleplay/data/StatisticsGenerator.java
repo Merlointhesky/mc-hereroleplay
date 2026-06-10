@@ -28,7 +28,8 @@ public class StatisticsGenerator {
         
         long intervalTicks = plugin.getConfig().getInt("statistics.update-interval", 30) * 20L * 60L;
         
-        taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::generateReport, intervalTicks, intervalTicks).getTaskId();
+        // Run first report after 5 seconds, then repeat on interval
+        taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::generateReport, 20L * 5L, intervalTicks).getTaskId();
         plugin.getLogger().info("Started YML Statistics Generator task.");
     }
     
@@ -37,27 +38,29 @@ public class StatisticsGenerator {
             Bukkit.getScheduler().cancelTask(taskId);
             taskId = -1;
         }
+        // Force a final synchronous report generation on shutdown
+        generateReport();
     }
 
     public void generateReport() {
         YamlConfiguration config = new YamlConfiguration();
-        
-        // We only generate stats for players currently in the cache (online players)
-        // For a full server report, we'd query the DB, but this fulfills the simple active player report
         DatabaseManager db = plugin.getDatabaseManager();
         
+        // Fetch all offline/database records
+        java.util.List<PlayerProfile> profiles = db.getAllProfiles();
         Map<UUID, PlayerProfile> cache = db.getProfileCache();
         
-        for (Map.Entry<UUID, PlayerProfile> entry : cache.entrySet()) {
-            UUID uuid = entry.getKey();
-            PlayerProfile profile = entry.getValue();
+        for (PlayerProfile profile : profiles) {
+            UUID uuid = profile.getUuid();
+            // Use active cached profile if player is currently online
+            if (cache.containsKey(uuid)) {
+                profile = cache.get(uuid);
+            }
             
             OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
             String name = player.getName() != null ? player.getName() : uuid.toString();
             
             String path = "players." + name;
-            
-            // Calculate a rough "Total Level" sum
             int totalLevel = profile.getCombatLevel() + profile.getCollectLevel() + profile.getCraftLevel();
             
             config.set(path + ".uuid", uuid.toString());
@@ -65,6 +68,10 @@ public class StatisticsGenerator {
             config.set(path + ".combat-level", profile.getCombatLevel());
             config.set(path + ".collect-level", profile.getCollectLevel());
             config.set(path + ".craft-level", profile.getCraftLevel());
+            config.set(path + ".strength", profile.getStrengthPoints());
+            config.set(path + ".agility", profile.getAgilityPoints());
+            config.set(path + ".vitality", profile.getVitalityPoints());
+            config.set(path + ".intelligence", profile.getIntelligencePoints());
             
             String classes = String.join(", ", profile.getUnlockedClasses());
             config.set(path + ".classes", classes.isEmpty() ? "None" : classes);

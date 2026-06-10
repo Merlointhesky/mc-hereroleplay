@@ -159,6 +159,38 @@ public class DatabaseManager {
     public PlayerProfile getProfile(UUID uuid) {
         return profileCache.get(uuid);
     }
+
+    public java.util.List<PlayerProfile> getAllProfiles() {
+        java.util.List<PlayerProfile> list = new java.util.ArrayList<>();
+        String query = "SELECT * FROM hrp_profiles";
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             java.sql.ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                UUID uuid = UUID.fromString(rs.getString("uuid"));
+                PlayerProfile profile = new PlayerProfile(uuid);
+                profile.setCombatLevel(rs.getInt("combatLevel"));
+                profile.setCollectLevel(rs.getInt("collectLevel"));
+                profile.setCraftLevel(rs.getInt("craftLevel"));
+                profile.setCombatXp(rs.getDouble("combatXp"));
+                profile.setCollectXp(rs.getDouble("collectXp"));
+                profile.setCraftXp(rs.getDouble("craftXp"));
+                profile.setStrengthPoints(rs.getInt("strengthPoints"));
+                profile.setAgilityPoints(rs.getInt("agilityPoints"));
+                profile.setVitalityPoints(rs.getInt("vitalityPoints"));
+                profile.setIntelligencePoints(rs.getInt("intelligencePoints"));
+                profile.setUnspentSkillPoints(rs.getInt("unspentSkillPoints"));
+                
+                String classesStr = rs.getString("unlockedClasses");
+                if (classesStr != null && !classesStr.isEmpty()) {
+                    profile.getUnlockedClasses().addAll(java.util.Arrays.asList(classesStr.split(",")));
+                }
+                list.add(profile);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
     
     public void unloadProfile(UUID uuid) {
         PlayerProfile profile = profileCache.remove(uuid);

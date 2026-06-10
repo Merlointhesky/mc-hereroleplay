@@ -117,4 +117,8 @@ public final class HereRolePlay extends JavaPlugin {
     public ClassManager getClassManager() {
         return classManager;
     }
+    
+    public StatisticsGenerator getStatisticsGenerator() {
+        return statisticsGenerator;
+    }
 }
