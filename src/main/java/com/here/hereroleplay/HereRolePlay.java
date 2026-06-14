@@ -75,7 +75,7 @@ public final class HereRolePlay extends JavaPlugin {
                     int efficiencyLvl = profile.getSkillLevel("Efficiency");
                     if (efficiencyLvl > 0) {
                         int amp = (efficiencyLvl - 1) / 10;
-                        player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FAST_DIGGING, 160, amp, true, false, true));
+                        player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HASTE, 160, amp, true, false, true));
                     }
                 }
             }

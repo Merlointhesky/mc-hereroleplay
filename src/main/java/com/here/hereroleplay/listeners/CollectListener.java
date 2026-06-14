@@ -66,14 +66,14 @@ public class CollectListener implements Listener {
 
         if (isFoliage) {
             isCrop = true;
-            xpToGive = 1.0;
+            xpToGive = 0.5;
         } else if (type == Material.WHEAT || type == Material.CARROTS || type == Material.POTATOES || 
             type == Material.BEETROOTS || type == Material.COCOA || type == Material.SWEET_BERRY_BUSH) {
             isCrop = true;
             BlockData blockData = block.getBlockData();
             if (blockData instanceof Ageable ageable) {
                 if (ageable.getAge() == ageable.getMaximumAge()) {
-                    xpToGive = 1.0;
+                    xpToGive = 0.5;
                 }
             }
         } else if (type == Material.NETHER_WART) {
@@ -81,40 +81,40 @@ public class CollectListener implements Listener {
             BlockData blockData = block.getBlockData();
             if (blockData instanceof Ageable ageable) {
                 if (ageable.getAge() == ageable.getMaximumAge()) {
-                    xpToGive = 1.5;
+                    xpToGive = 0.75;
                 }
             }
         } else if (type == Material.MELON || type == Material.PUMPKIN) {
             isCrop = true;
-            xpToGive = 1.5;
+            xpToGive = 0.75;
         } else if (type == Material.TORCHFLOWER_CROP || type == Material.PITCHER_CROP) {
             isCrop = true;
             BlockData blockData = block.getBlockData();
             if (blockData instanceof Ageable ageable) {
                 if (ageable.getAge() == ageable.getMaximumAge()) {
-                    xpToGive = 2.0;
+                    xpToGive = 1.0;
                 }
             }
         } else if (type == Material.SUGAR_CANE || type == Material.CACTUS || type == Material.BAMBOO) {
             isCrop = true;
-            xpToGive = 1.0;
+            xpToGive = 0.5;
         }
 
         if (!isCrop) {
             if (org.bukkit.Tag.LOGS.isTagged(type)) {
                 if (name.contains("PALE_OAK")) {
-                    xpToGive = 4.0;
-                } else if (name.contains("CRIMSON") || name.contains("WARPED")) {
-                    xpToGive = 3.0;
-                } else {
                     xpToGive = 2.0;
+                } else if (name.contains("CRIMSON") || name.contains("WARPED")) {
+                    xpToGive = 1.5;
+                } else {
+                    xpToGive = 1.0;
                 }
             } else if (name.contains("COAL_ORE") || name.contains("IRON_ORE") || name.contains("COPPER_ORE") || name.contains("GOLD_ORE") || name.contains("REDSTONE_ORE") || name.contains("LAPIS_ORE") || name.contains("NETHER_GOLD_ORE") || name.contains("QUARTZ_ORE")) {
-                xpToGive = 7.5;
+                xpToGive = 3.75;
             } else if (name.contains("DIAMOND_ORE") || name.contains("EMERALD_ORE") || type == Material.ANCIENT_DEBRIS) {
-                xpToGive = 50.0;
+                xpToGive = 25.0;
             } else if (org.bukkit.Tag.MINEABLE_PICKAXE.isTagged(type) || org.bukkit.Tag.MINEABLE_SHOVEL.isTagged(type)) {
-                xpToGive = 2.0;
+                xpToGive = 1.0;
             }
         }
 
@@ -145,7 +145,7 @@ public class CollectListener implements Listener {
     public void onPlayerFish(PlayerFishEvent event) {
         if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
             Player player = event.getPlayer();
-            plugin.getXpManager().addCollectXp(player, 10.0);
+            plugin.getXpManager().addCollectXp(player, 5.0);
         }
     }
 

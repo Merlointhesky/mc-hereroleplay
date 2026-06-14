@@ -127,9 +127,9 @@ Hero classes require specialized, higher stat distributions to unlock.
 ## 8. Landlord
 *   **Unlock Requirements**: Strength: `60`, Agility: `60`, Vitality: `60` (Total Points: `200`)
 *   **Active Ability**: **Transmutation**
-    *   *Trigger*: any item in hand, Sneak + Right Click any blocks.
+    *   *Trigger*: block in hand, Sneak + [F] on target block
     *   *Mana Cost*: `30`
-    *   *Description*: Converts target block and nearby blocks into the held block (doesnt work for non block items like sticks, weapons and similar)
+    *   *Description*: Converts target block and nearby connected blocks of the same type into the held block (doesn't work for non-block items or blacklisted blocks).
     *   *Scaling*: Radius increases by 1+(1 blocks per level). 
     *   *Unlock condition*: spend 40 points to unlock this active ability!
 *   **Passive buff**: **Domain Lord**

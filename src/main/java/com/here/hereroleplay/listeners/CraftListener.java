@@ -23,9 +23,9 @@ public class CraftListener implements Listener {
         
         ItemStack result = event.getRecipe().getResult();
         if (result != null && result.getType() != Material.AIR) {
-            // Simplified XP logic: 2 XP per craft for now. 
+            // Simplified XP logic: 2.4 XP per craft for now. 
             // In a real plugin, this would check the recipe complexity.
-            plugin.getXpManager().addCraftXp(player, 2.0);
+            plugin.getXpManager().addCraftXp(player, 2.4);
         }
     }
 
@@ -44,7 +44,7 @@ public class CraftListener implements Listener {
         }
         
         int amount = event.getItemAmount();
-        double xpToGive = amount * multiplier * 2.0; // Base 2.0 per item smelted
+        double xpToGive = amount * multiplier * 2.4; // Base 2.4 per item smelted
         
         plugin.getXpManager().addCraftXp(player, xpToGive);
     }

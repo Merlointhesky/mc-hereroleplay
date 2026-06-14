@@ -48,7 +48,7 @@ public class ProfileGUI implements CustomGUI {
                     "",
                     "&dAllocated Attributes:",
                     "&7- Strength: &f" + profile.getStrengthPoints() + " &a(+" + String.format("%.1f", profile.getStrengthPoints() * 0.5) + " Attack Damage)",
-                    "&7- Agility: &f" + profile.getAgilityPoints() + " &a(+" + String.format("%.4f", profile.getAgilityPoints() * 0.0002) + " Move Speed)",
+                    "&7- Agility: &f" + profile.getAgilityPoints() + " &a(+" + String.format("%.4f", profile.getAgilityPoints() * 0.0004) + " Move Speed)",
                     "&7- Vitality: &f" + profile.getVitalityPoints() + " &a(+" + String.format("%.1f", profile.getVitalityPoints() * 0.5) + " Max HP)",
                     "&7- Intelligence: &f" + profile.getIntelligencePoints() + " &a(+" + String.format("%.0f", profile.getIntelligencePoints() * maxManaBonusPerInt) + " Max Mana, +" + String.format("%.1f", profile.getIntelligencePoints() * regenBonusPerInt) + " Mana/s)",
                     "",
@@ -115,16 +115,20 @@ public class ProfileGUI implements CustomGUI {
             case "Quick Shot":
             case "Arcane Missile":
             case "Holy Nova":
+            case "Boomerang Throw":
+            case "Laser DOT":
+            case "Thunder Wave":
+            case "Chain Lightning":
                 return "F";
             case "Fireball":
-                return "RCLK";
+            case "Aegis":
+            case "Rejuvenation":
             case "Timber":
             case "Diggy Diggy Hole":
             case "Tunnel Vision":
-            case "Rejuvenation":
-            case "Aegis":
             case "Transmutation":
-                return "Shift+RCLK";
+            case "Water Wave":
+                return "Shift+F";
             default:
                 return "Unknown";
         }
@@ -154,6 +158,16 @@ public class ProfileGUI implements CustomGUI {
                 return String.format("AoE heals allies and damages enemies for %.1f in %.1fm radius.", 8.0 + (level - 1) * 2.0, 4.0 + (level - 1) * 0.5);
             case "Transmutation":
                 return String.format("Converts blocks within a %d block radius.", 1 + level);
+            case "Boomerang Throw":
+                return String.format("Throws your axe, dealing %.1f damage on path.", 8.0 + level * 2.0);
+            case "Thunder Wave":
+                return String.format("Strikes lightning on yourself, dealing %.1f damage and pushing enemies back.", 10.0 + level * 2.0);
+            case "Laser DOT":
+                return String.format("Channels a laser beam dealing %.1f damage per tick over 3s.", 2.0 + level * 0.5);
+            case "Chain Lightning":
+                return String.format("Hits facing target for %.1f damage and jumps up to %d times.", 10.0 + (level - 1) * 2.0, 1 + level / 10);
+            case "Water Wave":
+                return String.format("Deals %.1f damage, pushes back and creates temporary water.", 5.0 + level * 1.5);
             default:
                 return "No effect description.";
         }

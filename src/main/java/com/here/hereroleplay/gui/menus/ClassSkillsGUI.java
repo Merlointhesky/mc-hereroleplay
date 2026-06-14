@@ -69,14 +69,16 @@ public class ClassSkillsGUI implements CustomGUI {
                     .setLore("§7These are triggered by actions in combat or gathering.")
                     .build());
 
-            // Active slots: 1 -> 22; 2 -> 21, 23; 3 -> 20, 22, 24
+            // Active slots: 1 -> 22; 2 -> 21, 23; 3 -> 20, 22, 24; 4 -> 19, 21, 23, 25
             int[] activeSlots;
             if (activeSkills.size() == 1) {
                 activeSlots = new int[]{22};
             } else if (activeSkills.size() == 2) {
                 activeSlots = new int[]{21, 23};
-            } else {
+            } else if (activeSkills.size() == 3) {
                 activeSlots = new int[]{20, 22, 24};
+            } else {
+                activeSlots = new int[]{19, 21, 23, 25};
             }
 
             for (int i = 0; i < activeSkills.size() && i < activeSlots.length; i++) {
@@ -159,12 +161,17 @@ public class ClassSkillsGUI implements CustomGUI {
             case "Repair": return Material.EXPERIENCE_BOTTLE;
             case "Power Surge": return Material.MINECART;
             case "Aegis": return Material.SHIELD;
-            case "Holy Nova": return Material.GOLDEN_SWORD;
+            case "Holy Nova": return Material.SHIELD;
             case "Guardian": return Material.GOLDEN_APPLE;
             case "Transmutation": return Material.IRON_INGOT;
             case "Domain Lord": return Material.GRASS_BLOCK;
             case "Catalyst": return Material.GLISTERING_MELON_SLICE;
             case "Master of the Craft": return Material.BREWING_STAND;
+            case "Boomerang Throw": return Material.IRON_AXE;
+            case "Thunder Wave": return Material.MACE;
+            case "Laser DOT": return Material.TRIDENT;
+            case "Chain Lightning": return Material.LIGHTNING_ROD;
+            case "Water Wave": return Material.WATER_BUCKET;
             default: return Material.BOOK;
         }
     }
@@ -172,8 +179,11 @@ public class ClassSkillsGUI implements CustomGUI {
     private int getUpgradeCost(String skillName, int currentLvl, boolean isActive) {
         if (currentLvl == 0) {
             if (skillName.equals("Aegis") || skillName.equals("Holy Nova") || 
-                skillName.equals("Transmutation") || skillName.equals("Master of the Craft")) {
+                skillName.equals("Transmutation")) {
                 return 40;
+            }
+            if (skillName.equals("Master of the Craft")) {
+                return 60;
             }
             return isActive ? 5 : 1;
         }
@@ -471,13 +481,92 @@ public class ClassSkillsGUI implements CustomGUI {
                 lore.add("&bCurrent Effect:");
                 if (currentLvl > 0) {
                     lore.add("&7- Effect: &fActive (Doubles output)");
+                    lore.add("");
+                    lore.add("&aMAX LEVEL");
                 } else {
-                    lore.add("&cLocked (Requires 40 Skill Points)");
+                    lore.add("&cLocked (Requires 60 Skill Points)");
+                    lore.add("");
+                    lore.add("&bNext Level Preview:");
+                    lore.add("&7- Effect: &fActive (Doubles output)");
+                }
+                break;
+            case "Boomerang Throw":
+                lore.add("&7Throws your axe like a boomerang, hitting enemies.");
+                lore.add("");
+                lore.add("&bCurrent Effect:");
+                if (currentLvl > 0) {
+                    lore.add("&7- Damage: &f" + (8.0 + currentLvl * 2.0));
+                } else {
+                    lore.add("&cLocked");
                 }
                 lore.add("");
                 lore.add("&bNext Level Preview:");
-                lore.add("&7- Effect: &fActive (Doubles output)");
+                lore.add("&7- Damage: &f" + (8.0 + (currentLvl + 1) * 2.0));
                 break;
+            case "Thunder Wave":
+                lore.add("&7Calls lightning on yourself, pushing back and damaging nearby enemies.");
+                lore.add("");
+                lore.add("&bCurrent Effect:");
+                if (currentLvl > 0) {
+                    lore.add("&7- Damage: &f" + (10.0 + currentLvl * 2.0));
+                    lore.add("&7- Radius: &f" + (5.0 + currentLvl * 0.5) + " blocks");
+                } else {
+                    lore.add("&cLocked");
+                }
+                lore.add("");
+                lore.add("&bNext Level Preview:");
+                lore.add("&7- Damage: &f" + (10.0 + (currentLvl + 1) * 2.0));
+                lore.add("&7- Radius: &f" + (5.0 + (currentLvl + 1) * 0.5) + " blocks");
+                break;
+            case "Laser DOT":
+                lore.add("&7Channels a laser beam that deals damage over time.");
+                lore.add("");
+                lore.add("&bCurrent Effect:");
+                if (currentLvl > 0) {
+                    lore.add("&7- Damage Per Tick: &f" + (2.0 + currentLvl * 0.5));
+                } else {
+                    lore.add("&cLocked");
+                }
+                lore.add("");
+                lore.add("&bNext Level Preview:");
+                lore.add("&7- Damage Per Tick: &f" + (2.0 + (currentLvl + 1) * 0.5));
+                break;
+            case "Chain Lightning":
+                lore.add("&7Strikes facing target, then jumps to nearby targets.");
+                lore.add("");
+                lore.add("&bCurrent Effect:");
+                if (currentLvl > 0) {
+                    lore.add("&7- Damage: &f" + (10.0 + (currentLvl - 1) * 2.0));
+                    lore.add("&7- Max Jumps: &f" + (1 + currentLvl / 10));
+                } else {
+                    lore.add("&cLocked");
+                }
+                lore.add("");
+                lore.add("&bNext Level Preview:");
+                lore.add("&7- Damage: &f" + (10.0 + currentLvl * 2.0));
+                lore.add("&7- Max Jumps: &f" + (1 + (currentLvl + 1) / 10));
+                break;
+            case "Water Wave":
+                lore.add("&7Push near mobs away and place temporary water blocks.");
+                lore.add("");
+                lore.add("&bCurrent Effect:");
+                if (currentLvl > 0) {
+                    lore.add("&7- Damage: &f" + (5.0 + currentLvl * 1.5));
+                    lore.add("&7- Push Force: &f" + (1.0 + currentLvl * 0.15));
+                } else {
+                    lore.add("&cLocked");
+                }
+                lore.add("");
+                lore.add("&bNext Level Preview:");
+                lore.add("&7- Damage: &f" + (5.0 + (currentLvl + 1) * 1.5));
+                lore.add("&7- Push Force: &f" + (1.0 + (currentLvl + 1) * 0.15));
+                break;
+        }
+        
+        if (skillName.equals("Master of the Craft") && currentLvl >= 1) {
+            lore.add("");
+            lore.add("&aMaximum level reached!");
+            return lore;
         }
         
         lore.add("");
@@ -511,6 +600,13 @@ public class ClassSkillsGUI implements CustomGUI {
         if (skillToUpgrade != null) {
             boolean isActive = skillIsActive.get(skillToUpgrade);
             int currentLevel = profile.getSkillLevel(skillToUpgrade);
+
+            if (skillToUpgrade.equals("Master of the Craft") && currentLevel >= 1) {
+                player.sendMessage("§cMaster of the Craft is already at its maximum level (Level 1)!");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+                return;
+            }
+
             int cost = getUpgradeCost(skillToUpgrade, currentLevel, isActive);
 
             if (profile.getUnspentSkillPoints() >= cost) {

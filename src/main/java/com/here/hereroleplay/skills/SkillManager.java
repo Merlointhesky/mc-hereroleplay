@@ -16,12 +16,10 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -38,68 +36,103 @@ public class SkillManager implements Listener {
     }
 
     @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            handleSkillTrigger(player, false, event);
-        }
-    }
-
-    @EventHandler
     public void onFKeySwap(PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
         
         // Prevent the actual item swap
         event.setCancelled(true);
         
-        handleSkillTrigger(player, true, null);
+        handleSkillTrigger(player);
     }
 
-    private void handleSkillTrigger(Player player, boolean isFKey, PlayerInteractEvent event) {
+    private void handleSkillTrigger(Player player) {
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
-        Material handItem = player.getInventory().getItemInMainHand().getType();
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        Material handItem = mainHand.getType();
         String handItemName = handItem.name();
 
-        if (isFKey) {
-            if (handItemName.contains("SWORD") && handItem != Material.GOLDEN_SWORD) {
-                // Cleave (Sword, F-Key)
-                executeCleave(player, profile);
-            } else if (handItem == Material.GOLDEN_SWORD) {
-                // Holy Nova (Gold Sword, F-Key)
-                executeHolyNova(player, profile);
-            } else if (handItem == Material.STICK) {
-                // Arcane Missile (Stick, F-Key)
-                executeArcaneMissile(player, profile);
-            } else if (handItem == Material.BOW) {
-                // Quick Shot (Bow, F-Key)
-                executeQuickShot(player, profile);
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+        Material offHandItem = offHand.getType();
+
+        boolean executed = false;
+
+        if (player.isSneaking()) {
+            // Shift + F abilities
+            if (handItem == Material.STICK) {
+                executeFireball(player, profile);
+                executed = true;
+            } else if (handItem == Material.BLAZE_ROD) {
+                executeWaterWave(player, profile);
+                executed = true;
+            } else if (handItem == Material.SHIELD) {
+                executeAegis(player, profile);
+                executed = true;
+            } else if (handItemName.contains("HOE")) {
+                executeRejuvenation(player, profile);
+                executed = true;
+            } else if (handItemName.contains("AXE") && !handItemName.contains("PICKAXE")) {
+                Block targetBlock = player.getTargetBlockExact(5);
+                if (targetBlock != null && org.bukkit.Tag.LOGS.isTagged(targetBlock.getType())) {
+                    executeTimber(player, profile);
+                    executed = true;
+                }
+            } else if (handItemName.contains("SHOVEL")) {
+                Block targetBlock = player.getTargetBlockExact(5);
+                if (targetBlock != null && isShovellable(targetBlock.getType())) {
+                    executeDiggyDiggyHole(player, profile, targetBlock);
+                    executed = true;
+                }
+            } else if (handItemName.contains("PICKAXE")) {
+                Block targetBlock = player.getTargetBlockExact(5);
+                if (targetBlock != null && isMineable(targetBlock.getType())) {
+                    executeTunnelVision(player, profile, targetBlock);
+                    executed = true;
+                }
+            } else if (isValidTransmutationBlock(handItem)) {
+                Block targetBlock = player.getTargetBlockExact(5);
+                if (targetBlock != null) {
+                    executeTransmutation(player, profile, targetBlock);
+                    executed = true;
+                }
+            }
+
+            // Fallback to off-hand shield if nothing executed in main hand
+            if (!executed && offHandItem == Material.SHIELD) {
+                executeAegis(player, profile);
             }
         } else {
-            // Right Click / Shift-Right Click
-            if (player.isSneaking()) {
-                if (handItem == Material.SHIELD) {
-                    executeAegis(player, profile);
-                } else if (handItemName.contains("HOE")) {
-                    executeRejuvenation(player, profile);
-                } else if (event != null && event.getClickedBlock() != null) {
-                    Block clickedBlock = event.getClickedBlock();
-                    if (handItemName.contains("AXE") && org.bukkit.Tag.LOGS.isTagged(clickedBlock.getType())) {
-                        executeTimber(player, profile);
-                    } else if (handItemName.contains("SHOVEL") && isShovellable(clickedBlock.getType())) {
-                        executeDiggyDiggyHole(player, profile, clickedBlock);
-                    } else if (handItemName.contains("PICKAXE") && isMineable(clickedBlock.getType())) {
-                        executeTunnelVision(player, profile, clickedBlock);
-                    } else {
-                        executeTransmutation(player, profile, clickedBlock);
-                    }
-                }
-            } else {
-                // Non-sneaking right click
-                if (handItem == Material.STICK) {
-                    executeFireball(player, profile);
-                }
+            // F abilities
+            if (handItemName.contains("SWORD")) {
+                executeCleave(player, profile);
+                executed = true;
+            } else if (handItem == Material.SHIELD) {
+                executeHolyNova(player, profile);
+                executed = true;
+            } else if (handItem == Material.STICK) {
+                executeArcaneMissile(player, profile);
+                executed = true;
+            } else if (handItem == Material.BLAZE_ROD) {
+                executeChainLightning(player, profile);
+                executed = true;
+            } else if (handItem == Material.BOW) {
+                executeQuickShot(player, profile);
+                executed = true;
+            } else if (handItemName.contains("AXE") && !handItemName.contains("PICKAXE")) {
+                executeBoomerangThrow(player, profile);
+                executed = true;
+            } else if (handItem == Material.TRIDENT) {
+                executeLaserDot(player, profile);
+                executed = true;
+            } else if (handItem == Material.MACE) {
+                executeThunderWave(player, profile);
+                executed = true;
+            }
+
+            // Fallback to off-hand shield if nothing executed in main hand
+            if (!executed && offHandItem == Material.SHIELD) {
+                executeHolyNova(player, profile);
             }
         }
     }
@@ -382,7 +415,7 @@ public class SkillManager implements Listener {
                     int newAge = Math.min(ageable.getMaximumAge(), ageable.getAge() + 3);
                     ageable.setAge(newAge);
                     b.setBlockData(ageable);
-                    b.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, b.getLocation().add(0.5, 0.5, 0.5), 5, 0.2, 0.2, 0.2, 0.05);
+                    b.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, b.getLocation().add(0.5, 0.5, 0.5), 5, 0.2, 0.2, 0.2, 0.05);
                 }
             }
         } else {
@@ -396,7 +429,7 @@ public class SkillManager implements Listener {
                 double rad = Math.toRadians(d);
                 double x = Math.cos(rad) * radius;
                 double z = Math.sin(rad) * radius;
-                loc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc.clone().add(x, 0.1, z), 2, 0, 0, 0, 0);
+                loc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, loc.clone().add(x, 0.1, z), 2, 0, 0, 0, 0);
             }
             
             player.setHealth(Math.min(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), player.getHealth() + healAmount));
@@ -428,8 +461,8 @@ public class SkillManager implements Listener {
         player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1f, 0.8f);
         
         int durationTicks = (int) ((10.0 + (level - 1) * 2.5) * 20);
-        player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, durationTicks, 9)); // Resistance X = 100% reduction
-        player.getWorld().spawnParticle(Particle.TOTEM, player.getLocation(), 15, 0.5, 0.5, 0.5, 0.1);
+        player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, durationTicks, 9)); // Resistance X = 100% reduction
+        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation(), 15, 0.5, 0.5, 0.5, 0.1);
     }
 
     private void executeHolyNova(Player player, PlayerProfile profile) {
@@ -465,6 +498,75 @@ public class SkillManager implements Listener {
         }
     }
 
+    private boolean isBlacklisted(Material mat) {
+        if (mat == null) return true;
+        String name = mat.name().toUpperCase();
+        return mat == Material.AIR || 
+               mat == Material.BEDROCK || 
+               mat == Material.BARRIER || 
+               name.contains("VILLAGER") ||
+               name.contains("HEAD") ||
+               name.contains("SKULL") ||
+               name.contains("CHEST") ||
+               name.contains("BARREL") ||
+               name.contains("SHULKER") ||
+               name.contains("PORTAL") ||
+               name.contains("SPAWNER") ||
+               name.contains("COMMAND");
+    }
+
+    private boolean isValidTransmutationBlock(Material mat) {
+        if (mat == null) return false;
+        if (!mat.isBlock() || !mat.isSolid()) return false;
+        if (mat.isEdible() || mat.name().contains("SHIELD")) return false;
+        if (isBlacklisted(mat)) return false;
+        if (mat.isInteractable()) return false;
+
+        String name = mat.name();
+        if (name.contains("PLATE") || 
+            name.contains("SIGN") || 
+            name.contains("BANNER") || 
+            name.contains("BED") || 
+            name.contains("CAULDRON") || 
+            name.contains("CANDLE") || 
+            name.contains("CORAL") || 
+            name.contains("PISTON") || 
+            name.contains("GLASS_PANE") || 
+            name.contains("BARS") || 
+            name.contains("WALL") || 
+            name.contains("FENCE") || 
+            name.contains("GATE") || 
+            name.contains("STAIRS") || 
+            name.contains("SLAB") || 
+            name.contains("POT") || 
+            name.contains("LANTERN") || 
+            name.contains("TORCH") || 
+            name.contains("CAMPFIRE") || 
+            name.contains("EGG") || 
+            name.contains("SENSOR") || 
+            name.contains("VEIN") || 
+            name.contains("GRATE") || 
+            name.contains("CONDUIT") || 
+            name.contains("TARGET") || 
+            name.contains("LIGHTNING_ROD") || 
+            name.contains("PATH") || 
+            name.contains("INFESTED") || 
+            name.contains("AMETHYST_BUD") || 
+            name.contains("AMETHYST_CLUSTER") || 
+            name.contains("POINTED_DRIPSTONE") || 
+            name.contains("LEGACY_") || 
+            name.equals("BAMBOO") || 
+            name.equals("CHAIN") || 
+            name.equals("FARMLAND") || 
+            name.equals("FROSTED_ICE") || 
+            name.equals("BUDDING_AMETHYST")
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
     private void executeTransmutation(Player player, PlayerProfile profile, Block center) {
         int level = profile.getSkillLevel("Transmutation");
         if (level == 0) {
@@ -477,10 +579,24 @@ public class SkillManager implements Listener {
             return;
         }
 
-        Material heldType = player.getInventory().getItemInMainHand().getType();
-        if (!heldType.isBlock() || heldType == Material.AIR || heldType.isEdible() || heldType.name().contains("SHIELD")) {
-            player.sendMessage(ChatColor.RED + "You must hold a valid block to transmute!");
+        ItemStack heldItem = player.getInventory().getItemInMainHand();
+        Material heldType = heldItem.getType();
+        if (!isValidTransmutationBlock(heldType)) {
+            player.sendMessage(ChatColor.RED + "You cannot transmute into this block type!");
             return;
+        }
+
+        Material targetType = center.getType();
+        if (!isValidTransmutationBlock(targetType)) {
+            player.sendMessage(ChatColor.RED + "You cannot transmute this block type!");
+            return;
+        }
+
+        // Consume 1 block from player's hand
+        if (heldItem.getAmount() > 1) {
+            heldItem.setAmount(heldItem.getAmount() - 1);
+        } else {
+            player.getInventory().setItemInMainHand(null);
         }
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
@@ -488,19 +604,45 @@ public class SkillManager implements Listener {
         center.getWorld().playSound(center.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1f, 1f);
 
         int radius = 1 + level;
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    if (x*x + y*y + z*z <= radius*radius) {
-                        Block b = center.getRelative(x, y, z);
-                        Material t = b.getType();
-                        if (t != Material.AIR && t != Material.BEDROCK && t != Material.BARRIER) {
-                            b.setType(heldType);
-                            b.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, b.getLocation().add(0.5, 0.5, 0.5), 1, 0.1, 0.1, 0.1, 0.05);
+        double radiusSq = radius * radius;
+        Location centerLoc = center.getLocation();
+
+        java.util.Queue<Block> queue = new java.util.LinkedList<>();
+        java.util.Set<Block> visited = new java.util.HashSet<>();
+        List<Block> blocksToChange = new ArrayList<>();
+
+        queue.add(center);
+        visited.add(center);
+
+        org.bukkit.block.BlockFace[] faces = {
+            org.bukkit.block.BlockFace.UP,
+            org.bukkit.block.BlockFace.DOWN,
+            org.bukkit.block.BlockFace.NORTH,
+            org.bukkit.block.BlockFace.SOUTH,
+            org.bukkit.block.BlockFace.EAST,
+            org.bukkit.block.BlockFace.WEST
+        };
+
+        while (!queue.isEmpty()) {
+            Block current = queue.poll();
+            blocksToChange.add(current);
+
+            for (org.bukkit.block.BlockFace face : faces) {
+                Block neighbor = current.getRelative(face);
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    if (neighbor.getType() == targetType) {
+                        if (neighbor.getLocation().distanceSquared(centerLoc) <= radiusSq) {
+                            queue.add(neighbor);
                         }
                     }
                 }
             }
+        }
+
+        for (Block b : blocksToChange) {
+            b.setType(heldType);
+            b.getWorld().spawnParticle(Particle.ENCHANT, b.getLocation().add(0.5, 0.5, 0.5), 1, 0.1, 0.1, 0.05);
         }
     }
 
@@ -510,7 +652,7 @@ public class SkillManager implements Listener {
             if (snowball.hasMetadata("arcane_missile_lvl")) {
                 int level = snowball.getMetadata("arcane_missile_lvl").get(0).asInt();
                 double damage = 8.0 + (level - 1) * 2.5;
-                snowball.getWorld().spawnParticle(Particle.SPELL_WITCH, snowball.getLocation(), 15, 0.2, 0.2, 0.2, 0.1);
+                snowball.getWorld().spawnParticle(Particle.WITCH, snowball.getLocation(), 15, 0.2, 0.2, 0.2, 0.1);
                 snowball.getWorld().playSound(snowball.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1f, 1.5f);
                 if (event.getHitEntity() instanceof LivingEntity target) {
                     if (snowball.getShooter() instanceof Player shooter) {
@@ -656,5 +798,310 @@ public class SkillManager implements Listener {
         return mat == Material.WHEAT || mat == Material.CARROTS || mat == Material.POTATOES || 
                mat == Material.BEETROOTS || mat == Material.COCOA || mat == Material.NETHER_WART || 
                mat == Material.SWEET_BERRY_BUSH || mat == Material.MELON_STEM || mat == Material.PUMPKIN_STEM;
+    }
+
+    private void executeChainLightning(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Chain Lightning");
+        if (level == 0) return;
+
+        double cost = 20.0;
+        if (profile.getCurrentMana() < cost) {
+            player.sendMessage(ChatColor.RED + "Not enough mana for Chain Lightning!");
+            return;
+        }
+
+        // Raycast up to 15 blocks
+        Location eyeLoc = player.getEyeLocation();
+        org.bukkit.util.Vector dir = eyeLoc.getDirection().normalize();
+        LivingEntity firstTarget = null;
+        for (double d = 0; d < 15; d += 0.5) {
+            Location checkLoc = eyeLoc.clone().add(dir.clone().multiply(d));
+            checkLoc.getWorld().spawnParticle(Particle.ENCHANTED_HIT, checkLoc, 1, 0, 0, 0, 0);
+            for (Entity entity : checkLoc.getWorld().getNearbyEntities(checkLoc, 0.5, 0.5, 0.5)) {
+                if (entity instanceof LivingEntity target && target != player) {
+                    firstTarget = target;
+                    break;
+                }
+            }
+            if (firstTarget != null) break;
+        }
+
+        if (firstTarget == null) {
+            player.sendMessage(ChatColor.GRAY + "No target found in direction.");
+            return;
+        }
+
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.YELLOW + "You used " + ChatColor.GOLD + "Chain Lightning" + ChatColor.YELLOW + "!");
+        player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5f, 2f);
+
+        double damage = 10.0 + (level - 1) * 2.0;
+        int maxJumps = 1 + (level / 10);
+        java.util.Set<LivingEntity> hitSet = new java.util.HashSet<>();
+
+        LivingEntity current = firstTarget;
+        double currentDamage = damage;
+
+        for (int jump = 0; jump <= maxJumps; jump++) {
+            hitSet.add(current);
+            current.getWorld().strikeLightningEffect(current.getLocation());
+            current.damage(currentDamage, player);
+
+            // Find next target
+            LivingEntity next = null;
+            double bestDistSq = Double.MAX_VALUE;
+            for (Entity e : current.getNearbyEntities(8, 8, 8)) {
+                if (e instanceof LivingEntity candidate && candidate != player && !hitSet.contains(candidate)) {
+                    double distSq = candidate.getLocation().distanceSquared(current.getLocation());
+                    if (distSq < bestDistSq) {
+                        bestDistSq = distSq;
+                        next = candidate;
+                    }
+                }
+            }
+
+            if (next == null) break;
+
+            // Draw line between current and next
+            drawParticleLine(current.getLocation().add(0, 1, 0), next.getLocation().add(0, 1, 0));
+            currentDamage = Math.max(5.0, currentDamage * 0.95);
+            current = next;
+        }
+    }
+
+    private void drawParticleLine(Location loc1, Location loc2) {
+        double dist = loc1.distance(loc2);
+        org.bukkit.util.Vector dir = loc2.toVector().subtract(loc1.toVector()).normalize();
+        for (double d = 0; d < dist; d += 0.5) {
+            Location p = loc1.clone().add(dir.clone().multiply(d));
+            p.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, p, 1, 0, 0, 0, 0);
+        }
+    }
+
+    private void executeWaterWave(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Water Wave");
+        if (level == 0) return;
+
+        double cost = 30.0;
+        if (profile.getCurrentMana() < cost) {
+            player.sendMessage(ChatColor.RED + "Not enough mana for Water Wave!");
+            return;
+        }
+
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.BLUE + "You used " + ChatColor.AQUA + "Water Wave" + ChatColor.BLUE + "!");
+        player.playSound(player.getLocation(), Sound.ITEM_BUCKET_EMPTY, 1f, 1f);
+
+        double radius = 4.0 + level * 0.5;
+        double damage = 5.0 + level * 1.5;
+        double force = 1.0 + level * 0.15;
+
+        // Push and damage mobs
+        for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
+            if (entity instanceof LivingEntity target && target != player) {
+                target.damage(damage, player);
+                org.bukkit.util.Vector push = target.getLocation().toVector().subtract(player.getLocation().toVector());
+                push.setY(0);
+                if (push.lengthSquared() > 0) {
+                    push.normalize();
+                } else {
+                    push = player.getLocation().getDirection().setY(0).normalize();
+                }
+                push.multiply(force).setY(0.35);
+                target.setVelocity(push);
+            }
+        }
+
+        // Place temporary water blocks perimeter ring
+        List<Block> changedBlocks = new ArrayList<>();
+        Location center = player.getLocation();
+        int r = 2;
+        for (int x = -r; x <= r; x++) {
+            for (int z = -r; z <= r; z++) {
+                if (Math.abs(x) == r || Math.abs(z) == r) {
+                    Block b = center.getBlock().getRelative(x, 0, z);
+                    if (b.getType() == Material.AIR || b.getType() == Material.CAVE_AIR) {
+                        b.setType(Material.WATER);
+                        changedBlocks.add(b);
+                    }
+                }
+            }
+        }
+
+        if (!changedBlocks.isEmpty()) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (Block b : changedBlocks) {
+                    if (b.getType() == Material.WATER) {
+                        b.setType(Material.AIR);
+                    }
+                }
+            }, 20L);
+        }
+    }
+
+    private void executeBoomerangThrow(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Boomerang Throw");
+        if (level == 0) return;
+
+        double cost = 20.0;
+        if (profile.getCurrentMana() < cost) {
+            player.sendMessage(ChatColor.RED + "Not enough mana for Boomerang Throw!");
+            return;
+        }
+
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.GOLD + "You used " + ChatColor.YELLOW + "Boomerang Throw" + ChatColor.GOLD + "!");
+
+        ItemStack axeStack = player.getInventory().getItemInMainHand().clone();
+        axeStack.setAmount(1);
+        org.bukkit.entity.Item item = player.getWorld().dropItem(player.getEyeLocation(), axeStack);
+        item.setPickupDelay(32767);
+        item.setGravity(false);
+
+        org.bukkit.util.Vector direction = player.getLocation().getDirection().normalize();
+        item.setVelocity(direction.multiply(1.2));
+
+        double damage = 8.0 + level * 2.0;
+
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int ticks = 0;
+            final int maxDistanceTicks = 12;
+            final java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
+
+            @Override
+            public void run() {
+                if (!item.isValid() || !player.isOnline()) {
+                    item.remove();
+                    cancel();
+                    return;
+                }
+
+                ticks++;
+
+                if (ticks <= maxDistanceTicks) {
+                    item.setVelocity(direction.multiply(1.2));
+                } else {
+                    org.bukkit.util.Vector toPlayer = player.getLocation().add(0, 1, 0).toVector().subtract(item.getLocation().toVector());
+                    if (toPlayer.lengthSquared() < 1.5) {
+                        item.remove();
+                        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1f, 1f);
+                        cancel();
+                        return;
+                    }
+                    item.setVelocity(toPlayer.normalize().multiply(1.2));
+                }
+
+                item.getWorld().spawnParticle(Particle.CRIT, item.getLocation(), 3, 0.1, 0.1, 0.1, 0.05);
+                if (ticks % 3 == 0) {
+                    item.getWorld().playSound(item.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.5f, 1.5f);
+                }
+
+                for (Entity entity : item.getNearbyEntities(1.2, 1.2, 1.2)) {
+                    if (entity instanceof LivingEntity target && target != player && !hitEntities.contains(target.getUniqueId())) {
+                        hitEntities.add(target.getUniqueId());
+                        target.damage(damage, player);
+                        target.getWorld().playSound(target.getLocation(), Sound.ENTITY_ITEM_BREAK, 0.8f, 1.2f);
+                    }
+                }
+
+                if (ticks > 40) {
+                    item.remove();
+                    cancel();
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    private void executeLaserDot(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Laser DOT");
+        if (level == 0) return;
+
+        double cost = 20.0;
+        if (profile.getCurrentMana() < cost) {
+            player.sendMessage(ChatColor.RED + "Not enough mana for Laser DOT!");
+            return;
+        }
+
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.DARK_PURPLE + "You used " + ChatColor.LIGHT_PURPLE + "Laser DOT" + ChatColor.DARK_PURPLE + "!");
+
+        double damagePerTick = 2.0 + level * 0.5;
+
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int ticks = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline() || player.getInventory().getItemInMainHand().getType() != Material.TRIDENT || ticks >= 60) {
+                    cancel();
+                    return;
+                }
+
+                ticks += 5;
+
+                Location eyeLoc = player.getEyeLocation();
+                org.bukkit.util.Vector dir = eyeLoc.getDirection().normalize();
+                LivingEntity hitTarget = null;
+
+                for (double d = 0; d < 20.0; d += 0.5) {
+                    Location checkLoc = eyeLoc.clone().add(dir.clone().multiply(d));
+                    checkLoc.getWorld().spawnParticle(Particle.DUST, checkLoc, 1, 0, 0, 0, 0, new Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
+                    for (Entity e : checkLoc.getWorld().getNearbyEntities(checkLoc, 0.4, 0.4, 0.4)) {
+                        if (e instanceof LivingEntity target && target != player) {
+                            hitTarget = target;
+                            break;
+                        }
+                    }
+                    if (hitTarget != null) break;
+                }
+
+                if (hitTarget != null) {
+                    hitTarget.damage(damagePerTick, player);
+                    hitTarget.getWorld().spawnParticle(Particle.FLASH, hitTarget.getLocation().add(0, 1, 0), 1);
+                    hitTarget.getWorld().playSound(hitTarget.getLocation(), Sound.BLOCK_BEACON_AMBIENT, 0.5f, 2f);
+                }
+
+                player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 0.3f, 2f);
+            }
+        }.runTaskTimer(plugin, 0L, 5L);
+    }
+
+    private void executeThunderWave(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Thunder Wave");
+        if (level == 0) return;
+
+        double cost = 25.0;
+        if (profile.getCurrentMana() < cost) {
+            player.sendMessage(ChatColor.RED + "Not enough mana for Thunder Wave!");
+            return;
+        }
+
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.DARK_RED + "You used " + ChatColor.GOLD + "Thunder Wave" + ChatColor.DARK_RED + "!");
+
+        // Strike visual lightning at player
+        player.getWorld().strikeLightningEffect(player.getLocation());
+
+        double radius = 5.0 + level * 0.5;
+        double damage = 10.0 + level * 2.0;
+        double pushForce = 1.5 + level * 0.15;
+
+        // Damage and pushback nearby
+        for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
+            if (entity instanceof LivingEntity target && target != player) {
+                target.damage(damage, player);
+                org.bukkit.util.Vector push = target.getLocation().toVector().subtract(player.getLocation().toVector());
+                push.setY(0);
+                if (push.lengthSquared() > 0) {
+                    push.normalize();
+                } else {
+                    push = new org.bukkit.util.Vector(0, 0, 0);
+                }
+                push.multiply(pushForce).setY(0.4);
+                target.setVelocity(push);
+            }
+        }
+
+        player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation().add(0, 1, 0), 3, 0.5, 0.5, 0.5, 0.1);
     }
 }

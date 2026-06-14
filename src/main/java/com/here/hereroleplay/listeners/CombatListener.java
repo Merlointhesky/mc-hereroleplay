@@ -2,6 +2,8 @@ package com.here.hereroleplay.listeners;
 
 import com.here.hereroleplay.HereRolePlay;
 import com.here.hereroleplay.data.PlayerProfile;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,19 +29,46 @@ public class CombatListener implements Listener {
             EntityType type = event.getEntityType();
             String typeName = type.name();
 
-            // Broad check for hostile mobs / monsters
-            if (typeName.contains("ZOMBIE") || typeName.contains("SKELETON") || typeName.contains("SPIDER") ||
-                type == EntityType.CREEPER || type == EntityType.PIGLIN || type == EntityType.BLAZE ||
-                type == EntityType.GHAST || type == EntityType.SLIME || type == EntityType.MAGMA_CUBE ||
-                type == EntityType.WITCH || type == EntityType.PHANTOM || type == EntityType.DROWNED ||
-                type == EntityType.HUSK || type == EntityType.STRAY || type == EntityType.PILLAGER ||
-                type == EntityType.VINDICATOR || type == EntityType.EVOKER || type == EntityType.HOGLIN ||
-                type == EntityType.PIGLIN_BRUTE || type == EntityType.GUARDIAN || type == EntityType.ELDER_GUARDIAN) {
-                xpToGive = 5.0; // Tier 2
-            } else if (type == EntityType.ENDERMAN || type == EntityType.RAVAGER || type == EntityType.WITHER_SKELETON || type == EntityType.SHULKER) {
-                xpToGive = 25.0; // Tier 3
-            } else if (type == EntityType.ENDER_DRAGON || type == EntityType.WITHER || type == EntityType.WARDEN) {
-                xpToGive = 250.0; // Tier 4
+            NamespacedKey customBossKey = new NamespacedKey("heremobby", "custom_boss");
+            NamespacedKey customMobKey = new NamespacedKey("heremobby", "custom_mob");
+
+            if (event.getEntity().getPersistentDataContainer().has(customBossKey, PersistentDataType.STRING)) {
+                String bossId = event.getEntity().getPersistentDataContainer().get(customBossKey, PersistentDataType.STRING);
+                if ("void_necromancer".equalsIgnoreCase(bossId)) {
+                    xpToGive = 300.0;
+                } else if ("storm_archmage".equalsIgnoreCase(bossId)) {
+                    xpToGive = 400.0;
+                } else if ("overworld_wither".equalsIgnoreCase(bossId)) {
+                    xpToGive = 800.0;
+                } else if ("deep_dark_guardian".equalsIgnoreCase(bossId)) {
+                    xpToGive = 1500.0;
+                } else {
+                    xpToGive = 500.0;
+                }
+            } else if (event.getEntity().getPersistentDataContainer().has(customMobKey, PersistentDataType.STRING)) {
+                String mobId = event.getEntity().getPersistentDataContainer().get(customMobKey, PersistentDataType.STRING);
+                if ("infernal_pyromancer".equalsIgnoreCase(mobId)) {
+                    xpToGive = 35.0;
+                } else {
+                    xpToGive = 15.0;
+                }
+            } else {
+                // Broad check for hostile mobs / monsters
+                if (typeName.contains("ZOMBIE") || typeName.contains("SKELETON") || typeName.contains("SPIDER") ||
+                    type == EntityType.CREEPER || type == EntityType.PIGLIN || type == EntityType.BLAZE ||
+                    type == EntityType.GHAST || type == EntityType.SLIME || type == EntityType.MAGMA_CUBE ||
+                    type == EntityType.WITCH || type == EntityType.PHANTOM || type == EntityType.DROWNED ||
+                    type == EntityType.HUSK || type == EntityType.STRAY || type == EntityType.PILLAGER ||
+                    type == EntityType.VINDICATOR || type == EntityType.EVOKER || type == EntityType.HOGLIN ||
+                    type == EntityType.PIGLIN_BRUTE || type == EntityType.GUARDIAN || type == EntityType.ELDER_GUARDIAN) {
+                    xpToGive = 5.0; // Tier 2
+                } else if (type == EntityType.ENDERMAN || type == EntityType.RAVAGER || type == EntityType.WITHER_SKELETON || type == EntityType.SHULKER) {
+                    xpToGive = 25.0; // Tier 3
+                } else if (type == EntityType.ENDER_DRAGON || type == EntityType.WITHER || type == EntityType.WARDEN) {
+                    xpToGive = 250.0; // Tier 4
+                }
+                
+                xpToGive *= 1.1; // Increase standard combat XP by 10%
             }
 
             plugin.getXpManager().addCombatXp(player, xpToGive);
@@ -63,8 +92,8 @@ public class CombatListener implements Listener {
             
             double damage = event.getFinalDamage();
             if (damage > 0) {
-                // 1 heart = 2 damage points = 1 XP
-                double xpToGive = damage / 2.0;
+                // 1 heart = 2 damage points = 1 XP, increased by 10%
+                double xpToGive = (damage / 2.0) * 1.1;
                 plugin.getXpManager().addCombatXp(player, xpToGive);
             }
         }
