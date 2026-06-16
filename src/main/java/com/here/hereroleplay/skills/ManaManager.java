@@ -141,13 +141,13 @@ public class ManaManager {
             case "Cleave":
             case "Holy Nova":
             case "Arcane Missile":
+            case "Fireball":
             case "Quick Shot":
             case "Boomerang Throw":
             case "Laser DOT":
             case "Thunder Wave":
-            case "Chain Lightning":
                 return "F";
-            case "Fireball":
+            case "Chain Lightning":
             case "Aegis":
             case "Rejuvenation":
             case "Timber":
@@ -173,8 +173,10 @@ public class ManaManager {
                 profile.setCurrentMana(currentMana);
             }
             
-            String fPart = "";
-            String shiftFPart = "";
+            String mainF = "";
+            String mainShiftF = "";
+            String offhandShieldPart = "";
+            
             ItemStack handItem = player.getInventory().getItemInMainHand();
             ItemStack offHandItem = player.getInventory().getItemInOffHand();
             
@@ -183,9 +185,6 @@ public class ManaManager {
             String handName = handMat.name();
             
             java.util.List<ActiveSkill> unlocked = plugin.getClassManager().getUnlockedActiveSkills(profile);
-            
-            boolean mainHandHasF = false;
-            boolean mainHandHasShiftF = false;
             
             if (handMat != Material.AIR) {
                 for (ActiveSkill skill : unlocked) {
@@ -201,7 +200,7 @@ public class ManaManager {
                             matches = handMat == Material.STICK;
                             break;
                         case "Fireball":
-                            matches = handMat == Material.STICK;
+                            matches = handMat == Material.BLAZE_ROD;
                             break;
                         case "Quick Shot":
                             matches = handMat == Material.BOW;
@@ -237,50 +236,88 @@ public class ManaManager {
                             matches = handMat == Material.BLAZE_ROD;
                             break;
                         case "Water Wave":
-                            matches = handMat == Material.BLAZE_ROD;
+                            matches = handMat == Material.STICK;
                             break;
                     }
                     
                     if (matches) {
                         String trigger = getSkillTriggerText(skill.getName());
                         if (trigger.equals("F")) {
-                            if (!fPart.isEmpty()) fPart += " ";
-                            fPart += String.format("§e[F] %s", skill.getName().toUpperCase());
-                            mainHandHasF = true;
+                            if (!mainF.isEmpty()) mainF += " ";
+                            mainF += String.format("§e[F] %s", skill.getName().toUpperCase());
                         } else if (trigger.equals("Shift+F")) {
-                            if (!shiftFPart.isEmpty()) shiftFPart += " ";
-                            shiftFPart += String.format("§a[Shift+F] %s", skill.getName().toUpperCase());
-                            mainHandHasShiftF = true;
+                            if (!mainShiftF.isEmpty()) mainShiftF += " ";
+                            mainShiftF += String.format("§a[Shift+F] %s", skill.getName().toUpperCase());
                         }
                     }
                 }
             }
             
-            // Offhand shield fallback
+            // Offhand shield
             if (offHandMat == Material.SHIELD) {
                 for (ActiveSkill skill : unlocked) {
-                    if (skill.getName().equals("Holy Nova") && !mainHandHasF) {
-                        if (!fPart.isEmpty()) fPart += " ";
-                        fPart += String.format("§e[F] %s", skill.getName().toUpperCase());
-                    } else if (skill.getName().equals("Aegis") && !mainHandHasShiftF) {
-                        if (!shiftFPart.isEmpty()) shiftFPart += " ";
-                        shiftFPart += String.format("§a[Shift+F] %s", skill.getName().toUpperCase());
+                    if (skill.getName().equals("Holy Nova")) {
+                        if (!offhandShieldPart.isEmpty()) offhandShieldPart += " ";
+                        offhandShieldPart += String.format("§6[Block+F] %s", skill.getName().toUpperCase());
+                    } else if (skill.getName().equals("Aegis")) {
+                        if (!offhandShieldPart.isEmpty()) offhandShieldPart += " ";
+                        offhandShieldPart += String.format("§a[Block+Shift+F] %s", skill.getName().toUpperCase());
                     }
                 }
             }
             
+            java.util.List<String> parts = new java.util.ArrayList<>();
+            if (!mainF.isEmpty()) parts.add(mainF);
+            if (!mainShiftF.isEmpty()) parts.add(mainShiftF);
+            if (!offhandShieldPart.isEmpty()) parts.add(offhandShieldPart);
+            
+            String skillsText = String.join("      ", parts);
+            
+            // Calculate health layer and color
+            double currentHP = player.getHealth();
+            double maxHP = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH) != null ? player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue() : 20.0;
+            
+            double layerSize = 40.0;
+            int currentLayer = (int) Math.ceil(currentHP / layerSize);
+            if (currentLayer < 1) currentLayer = 1;
+            
+            String hpColor = "§c"; // Default red
+            switch (currentLayer) {
+                case 1: hpColor = "§c"; break; // Red
+                case 2: hpColor = "§5"; break; // Dark Purple
+                case 3: hpColor = "§9"; break; // Blue
+                case 4: hpColor = "§2"; break; // Dark Green
+                case 5: hpColor = "§6"; break; // Gold
+                case 6: hpColor = "§d"; break; // Light Purple
+                case 7: hpColor = "§b"; break; // Aqua
+                case 8: hpColor = "§a"; break; // Light Green
+                default: hpColor = "§f"; break; // White
+            }
+            
+            String hpText = String.format("%s❤ HP(%s) %.0f/%.0f", hpColor, toRoman(currentLayer), currentHP, maxHP);
+            
             String actionbar;
-            if (!fPart.isEmpty() && !shiftFPart.isEmpty()) {
-                actionbar = String.format("§b✦ Mana: %.0f / %.0f      %s      %s", currentMana, maxMana, fPart, shiftFPart);
-            } else if (!fPart.isEmpty()) {
-                actionbar = String.format("§b✦ Mana: %.0f / %.0f      %s", currentMana, maxMana, fPart);
-            } else if (!shiftFPart.isEmpty()) {
-                actionbar = String.format("§b✦ Mana: %.0f / %.0f                            %s", currentMana, maxMana, shiftFPart);
+            if (!skillsText.isEmpty()) {
+                actionbar = String.format("%s      §b✦ Mana: %.0f / %.0f      %s", hpText, currentMana, maxMana, skillsText);
             } else {
-                actionbar = String.format("§b✦ Mana: %.0f / %.0f", currentMana, maxMana);
+                actionbar = String.format("%s      §b✦ Mana: %.0f / %.0f", hpText, currentMana, maxMana);
             }
             
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbar));
         }
+    }
+
+    private String toRoman(int num) {
+        if (num < 1) return "I";
+        int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+        String[] symbols = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            while (num >= values[i]) {
+                num -= values[i];
+                sb.append(symbols[i]);
+            }
+        }
+        return sb.toString();
     }
 }

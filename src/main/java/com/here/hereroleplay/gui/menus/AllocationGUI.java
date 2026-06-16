@@ -49,7 +49,8 @@ public class AllocationGUI implements CustomGUI {
                 .setName("&aAgility")
                 .setLore(
                     "&7Current: &f" + profile.getAgilityPoints(),
-                    "&7Effect: &f+" + String.format("%.4f", profile.getAgilityPoints() * 0.0004) + " Move Speed"
+                    "&7Effect: &f+" + String.format("%.4f", profile.getAgilityPoints() * 0.0004) + " Move Speed",
+                    "&7        &f+" + String.format("%.3f", profile.getAgilityPoints() * 0.001) + " Jump Strength"
                 ).build());
 
         // Vitality

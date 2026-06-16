@@ -20,6 +20,7 @@ import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -45,6 +46,8 @@ public class SkillManager implements Listener {
         handleSkillTrigger(player);
     }
 
+
+
     private void handleSkillTrigger(Player player) {
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile == null) return;
@@ -58,81 +61,80 @@ public class SkillManager implements Listener {
 
         boolean executed = false;
 
-        if (player.isSneaking()) {
-            // Shift + F abilities
-            if (handItem == Material.STICK) {
-                executeFireball(player, profile);
-                executed = true;
-            } else if (handItem == Material.BLAZE_ROD) {
-                executeWaterWave(player, profile);
-                executed = true;
-            } else if (handItem == Material.SHIELD) {
-                executeAegis(player, profile);
-                executed = true;
-            } else if (handItemName.contains("HOE")) {
-                executeRejuvenation(player, profile);
-                executed = true;
-            } else if (handItemName.contains("AXE") && !handItemName.contains("PICKAXE")) {
-                Block targetBlock = player.getTargetBlockExact(5);
-                if (targetBlock != null && org.bukkit.Tag.LOGS.isTagged(targetBlock.getType())) {
-                    executeTimber(player, profile);
-                    executed = true;
-                }
-            } else if (handItemName.contains("SHOVEL")) {
-                Block targetBlock = player.getTargetBlockExact(5);
-                if (targetBlock != null && isShovellable(targetBlock.getType())) {
-                    executeDiggyDiggyHole(player, profile, targetBlock);
-                    executed = true;
-                }
-            } else if (handItemName.contains("PICKAXE")) {
-                Block targetBlock = player.getTargetBlockExact(5);
-                if (targetBlock != null && isMineable(targetBlock.getType())) {
-                    executeTunnelVision(player, profile, targetBlock);
-                    executed = true;
-                }
-            } else if (isValidTransmutationBlock(handItem)) {
-                Block targetBlock = player.getTargetBlockExact(5);
-                if (targetBlock != null) {
-                    executeTransmutation(player, profile, targetBlock);
-                    executed = true;
-                }
+        // Prioritize off-hand shield skills if the player is blocking
+        if (offHandItem == Material.SHIELD && player.isBlocking()) {
+            if (player.isSneaking()) {
+                executed = executeAegis(player, profile);
+            } else {
+                executed = executeHolyNova(player, profile);
             }
+        }
 
-            // Fallback to off-hand shield if nothing executed in main hand
-            if (!executed && offHandItem == Material.SHIELD) {
-                executeAegis(player, profile);
-            }
-        } else {
-            // F abilities
-            if (handItemName.contains("SWORD")) {
-                executeCleave(player, profile);
-                executed = true;
-            } else if (handItem == Material.SHIELD) {
-                executeHolyNova(player, profile);
-                executed = true;
-            } else if (handItem == Material.STICK) {
-                executeArcaneMissile(player, profile);
-                executed = true;
-            } else if (handItem == Material.BLAZE_ROD) {
-                executeChainLightning(player, profile);
-                executed = true;
-            } else if (handItem == Material.BOW) {
-                executeQuickShot(player, profile);
-                executed = true;
-            } else if (handItemName.contains("AXE") && !handItemName.contains("PICKAXE")) {
-                executeBoomerangThrow(player, profile);
-                executed = true;
-            } else if (handItem == Material.TRIDENT) {
-                executeLaserDot(player, profile);
-                executed = true;
-            } else if (handItem == Material.MACE) {
-                executeThunderWave(player, profile);
-                executed = true;
-            }
-
-            // Fallback to off-hand shield if nothing executed in main hand
-            if (!executed && offHandItem == Material.SHIELD) {
-                executeHolyNova(player, profile);
+        if (!executed) {
+            if (player.isSneaking()) {
+                // Shift + F abilities
+                if (handItem == Material.STICK) {
+                    executeWaterWave(player, profile);
+                    executed = true;
+                } else if (handItem == Material.BLAZE_ROD) {
+                    executeChainLightning(player, profile);
+                    executed = true;
+                } else if (handItem == Material.SHIELD) {
+                    executed = executeAegis(player, profile);
+                } else if (handItemName.contains("HOE")) {
+                    executeRejuvenation(player, profile);
+                    executed = true;
+                } else if (handItemName.contains("AXE") && !handItemName.contains("PICKAXE")) {
+                    Block targetBlock = player.getTargetBlockExact(5);
+                    if (targetBlock != null && org.bukkit.Tag.LOGS.isTagged(targetBlock.getType())) {
+                        executeTimber(player, profile);
+                        executed = true;
+                    }
+                } else if (handItemName.contains("SHOVEL")) {
+                    Block targetBlock = player.getTargetBlockExact(5);
+                    if (targetBlock != null && isShovellable(targetBlock.getType())) {
+                        executeDiggyDiggyHole(player, profile, targetBlock);
+                        executed = true;
+                    }
+                } else if (handItemName.contains("PICKAXE")) {
+                    Block targetBlock = player.getTargetBlockExact(5);
+                    if (targetBlock != null && isMineable(targetBlock.getType())) {
+                        executeTunnelVision(player, profile, targetBlock);
+                        executed = true;
+                    }
+                } else if (isValidTransmutationBlock(handItem)) {
+                    Block targetBlock = player.getTargetBlockExact(5);
+                    if (targetBlock != null) {
+                        executeTransmutation(player, profile, targetBlock);
+                        executed = true;
+                    }
+                }
+            } else {
+                // F abilities
+                if (handItemName.contains("SWORD")) {
+                    executeCleave(player, profile);
+                    executed = true;
+                } else if (handItem == Material.SHIELD) {
+                    executed = executeHolyNova(player, profile);
+                } else if (handItem == Material.STICK) {
+                    executeArcaneMissile(player, profile);
+                    executed = true;
+                } else if (handItem == Material.BLAZE_ROD) {
+                    executeFireball(player, profile);
+                    executed = true;
+                } else if (handItem == Material.BOW) {
+                    executeQuickShot(player, profile);
+                    executed = true;
+                } else if (handItemName.contains("AXE") && !handItemName.contains("PICKAXE")) {
+                    executeBoomerangThrow(player, profile);
+                    executed = true;
+                } else if (handItem == Material.TRIDENT) {
+                    executeLaserDot(player, profile);
+                    executed = true;
+                } else if (handItem == Material.MACE) {
+                    executeThunderWave(player, profile);
+                    executed = true;
+                }
             }
         }
     }
@@ -444,16 +446,16 @@ public class SkillManager implements Listener {
         }
     }
 
-    private void executeAegis(Player player, PlayerProfile profile) {
+    private boolean executeAegis(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Aegis");
         if (level == 0) {
-            return;
+            return false;
         }
 
         double cost = 40.0;
         if (profile.getCurrentMana() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough mana for Aegis!");
-            return;
+            return false;
         }
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
@@ -463,18 +465,19 @@ public class SkillManager implements Listener {
         int durationTicks = (int) ((10.0 + (level - 1) * 2.5) * 20);
         player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, durationTicks, 9)); // Resistance X = 100% reduction
         player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation(), 15, 0.5, 0.5, 0.5, 0.1);
+        return true;
     }
 
-    private void executeHolyNova(Player player, PlayerProfile profile) {
+    private boolean executeHolyNova(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Holy Nova");
         if (level == 0) {
-            return;
+            return false;
         }
 
         double cost = 35.0;
         if (profile.getCurrentMana() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough mana for Holy Nova!");
-            return;
+            return false;
         }
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
@@ -496,6 +499,7 @@ public class SkillManager implements Listener {
                 }
             }
         }
+        return true;
     }
 
     private boolean isBlacklisted(Material mat) {
@@ -930,12 +934,24 @@ public class SkillManager implements Listener {
 
         if (!changedBlocks.isEmpty()) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                java.util.Set<Block> toClear = new java.util.HashSet<>();
                 for (Block b : changedBlocks) {
-                    if (b.getType() == Material.WATER) {
-                        b.setType(Material.AIR);
+                    if (!b.getWorld().isChunkLoaded(b.getX() >> 4, b.getZ() >> 4)) continue;
+                    for (int dx = -2; dx <= 2; dx++) {
+                        for (int dy = -1; dy <= 2; dy++) {
+                            for (int dz = -2; dz <= 2; dz++) {
+                                Block rel = b.getRelative(dx, dy, dz);
+                                if (rel.getType() == Material.WATER) {
+                                    toClear.add(rel);
+                                }
+                            }
+                        }
                     }
                 }
-            }, 20L);
+                for (Block b : toClear) {
+                    b.setType(Material.AIR);
+                }
+            }, 200L);
         }
     }
 

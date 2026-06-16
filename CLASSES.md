@@ -41,10 +41,20 @@ This document lists all active roleplay classes, their active spells/abilities, 
     *   *Description*: Shoots a magical missile dealing damage on impact.
     *   *Scaling*: Deals `8.0 + (level - 1) * 2.5` damage.
 *   **Active Ability 2**: **Fireball**
-    *   *Trigger*: Stick in hand, right click
+    *   *Trigger*: Blaze Rod in hand, press `[F]`
     *   *Mana Cost*: `25`
     *   *Description*: Shoots an explosive fireball that damages and ignites entities.
     *   *Scaling*: Deals `12.0 + (level - 1) * 3.0` damage in a 3-block radius; ignites for `2.0s + (level - 1) * 0.5s`.
+*   **Active Ability 3**: **Chain Lightning**
+    *   *Trigger*: Blaze Rod in hand, Sneak + `[F]`
+    *   *Mana Cost*: `20`
+    *   *Description*: Lightning jumps from target to target, dealing damage.
+    *   *Scaling*: Deals `10.0 + (level - 1) * 2.0` damage, jumps up to `1 + level / 10` times.
+*   **Active Ability 4**: **Water Wave**
+    *   *Trigger*: Stick in hand, Sneak + `[F]`
+    *   *Mana Cost*: `30`
+    *   *Description*: Creates a water barrier, pushing back and damaging enemies.
+    *   *Scaling*: Deals `5.0 + level * 1.5` damage, pushes back with `1.0 + level * 0.15` force.
 *   **Passive buff**: **Spell Echo**
     *   *Description*: Mana regeneration boost.
     *   *Scaling*: `+1%` mana regeneration rate per level.
@@ -109,13 +119,13 @@ Hero classes require specialized, higher stat distributions to unlock.
 ## 7. Paladin
 *   **Unlock Requirements**: Strength: `60`, Vitality: `60`, Intelligence: `60` (Total Points: `200`)
 *   **Active Ability 1**: **Aegis**
-    *   *Trigger*: Shield in hand, Sneak + Right Click
+    *   *Trigger*: Shield in hand, Sneak + `[F]` (or Block + Shift+`[F]` if off-hand)
     *   *Mana Cost*: `40`
     *   *Description*: Invulnerability (Resistance X) for a duration.
     *   *Scaling*: Invulnerability lasts `10.0s + (level - 1) * 2.5s`.
     *   *Unlock condition*: spend 40 points to unlock this active ability!
 *   **Active Ability 2**: **Holy Nova**
-    *   *Trigger*: Gold Sword in hand, press `[F]`
+    *   *Trigger*: Shield in hand, press `[F]` (or Block + `[F]` if off-hand)
     *   *Mana Cost*: `35`
     *   *Description*: AoE healing for allies and damage to monsters.
     *   *Scaling*: Heals/deals `8.0 + (level - 1) * 2.0` in a `4.0 + (level - 1) * 0.5` block radius.

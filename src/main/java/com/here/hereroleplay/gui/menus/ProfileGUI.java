@@ -48,7 +48,7 @@ public class ProfileGUI implements CustomGUI {
                     "",
                     "&dAllocated Attributes:",
                     "&7- Strength: &f" + profile.getStrengthPoints() + " &a(+" + String.format("%.1f", profile.getStrengthPoints() * 0.5) + " Attack Damage)",
-                    "&7- Agility: &f" + profile.getAgilityPoints() + " &a(+" + String.format("%.4f", profile.getAgilityPoints() * 0.0004) + " Move Speed)",
+                    "&7- Agility: &f" + profile.getAgilityPoints() + " &a(+" + String.format("%.4f", profile.getAgilityPoints() * 0.0004) + " Speed, +" + String.format("%.3f", profile.getAgilityPoints() * 0.001) + " Jump)",
                     "&7- Vitality: &f" + profile.getVitalityPoints() + " &a(+" + String.format("%.1f", profile.getVitalityPoints() * 0.5) + " Max HP)",
                     "&7- Intelligence: &f" + profile.getIntelligencePoints() + " &a(+" + String.format("%.0f", profile.getIntelligencePoints() * maxManaBonusPerInt) + " Max Mana, +" + String.format("%.1f", profile.getIntelligencePoints() * regenBonusPerInt) + " Mana/s)",
                     "",
@@ -114,14 +114,14 @@ public class ProfileGUI implements CustomGUI {
             case "Cleave":
             case "Quick Shot":
             case "Arcane Missile":
-            case "Holy Nova":
+            case "Fireball":
             case "Boomerang Throw":
             case "Laser DOT":
             case "Thunder Wave":
-            case "Chain Lightning":
                 return "F";
-            case "Fireball":
-            case "Aegis":
+            case "Holy Nova":
+                return "F (Block+F if off-hand)";
+            case "Chain Lightning":
             case "Rejuvenation":
             case "Timber":
             case "Diggy Diggy Hole":
@@ -129,6 +129,8 @@ public class ProfileGUI implements CustomGUI {
             case "Transmutation":
             case "Water Wave":
                 return "Shift+F";
+            case "Aegis":
+                return "Shift+F (Block+Shift+F if off-hand)";
             default:
                 return "Unknown";
         }

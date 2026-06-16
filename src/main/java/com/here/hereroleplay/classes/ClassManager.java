@@ -95,9 +95,9 @@ public class ClassManager {
 
         // Wizard
         activeSkills.add(new ActiveSkill("Arcane Missile", "Wizard", "Stick in hand, press [F]", 15, "Shoots a magical missile dealing damage."));
-        activeSkills.add(new ActiveSkill("Fireball", "Wizard", "Stick in hand, Sneak + [F]", 25, "Shoots an explosive fireball."));
-        activeSkills.add(new ActiveSkill("Chain Lightning", "Wizard", "Blaze Rod in hand, press [F]", 20, "Lightning jumps from target to target, dealing damage."));
-        activeSkills.add(new ActiveSkill("Water Wave", "Wizard", "Blaze Rod in hand, Shift+F", 30, "Creates a water barrier, pushing back and damaging enemies."));
+        activeSkills.add(new ActiveSkill("Fireball", "Wizard", "Blaze Rod in hand, press [F]", 25, "Shoots an explosive fireball."));
+        activeSkills.add(new ActiveSkill("Chain Lightning", "Wizard", "Blaze Rod in hand, Sneak + [F]", 20, "Lightning jumps from target to target, dealing damage."));
+        activeSkills.add(new ActiveSkill("Water Wave", "Wizard", "Stick in hand, Sneak + [F]", 30, "Creates a water barrier, pushing back and damaging enemies."));
         passiveSkills.add(new PassiveSkill("Spell Echo", "Wizard", "+1% mana regeneration rate per level"));
 
         // Miner
@@ -117,8 +117,8 @@ public class ClassManager {
         passiveSkills.add(new PassiveSkill("Power Surge", "Engineer", "Increases vehicle/mount speed (+1% per level)"));
 
         // Paladin
-        activeSkills.add(new ActiveSkill("Aegis", "Paladin", "Shield in hand, Sneak + [F]", 40, "Invulnerability for a duration."));
-        activeSkills.add(new ActiveSkill("Holy Nova", "Paladin", "Shield in hand, press [F]", 35, "AoE healing for allies and damage to monsters."));
+        activeSkills.add(new ActiveSkill("Aegis", "Paladin", "Shield in hand, Sneak + [F] (or Block + Shift+F if off-hand)", 40, "Invulnerability for a duration."));
+        activeSkills.add(new ActiveSkill("Holy Nova", "Paladin", "Shield in hand, press [F] (or Block + F if off-hand)", 35, "AoE healing for allies and damage to monsters."));
         passiveSkills.add(new PassiveSkill("Guardian", "Paladin", "+1 heart max health per level"));
 
         // Landlord
@@ -134,7 +134,7 @@ public class ClassManager {
         List<ActiveSkill> unlocked = new ArrayList<>();
         boolean hasAdmin = profile.getUnlockedClasses().contains("Admin Class");
         for (ActiveSkill skill : activeSkills) {
-            if (hasAdmin || (profile.getUnlockedClasses().contains(skill.getClassName()) && profile.getSkillLevel(skill.getName()) >= 1)) {
+            if ((hasAdmin || profile.getUnlockedClasses().contains(skill.getClassName())) && profile.getSkillLevel(skill.getName()) >= 1) {
                 unlocked.add(skill);
             }
         }
@@ -145,7 +145,7 @@ public class ClassManager {
         List<PassiveSkill> unlocked = new ArrayList<>();
         boolean hasAdmin = profile.getUnlockedClasses().contains("Admin Class");
         for (PassiveSkill skill : passiveSkills) {
-            if (hasAdmin || (profile.getUnlockedClasses().contains(skill.getClassName()) && profile.getSkillLevel(skill.getName()) >= 1)) {
+            if ((hasAdmin || profile.getUnlockedClasses().contains(skill.getClassName())) && profile.getSkillLevel(skill.getName()) >= 1) {
                 unlocked.add(skill);
             }
         }

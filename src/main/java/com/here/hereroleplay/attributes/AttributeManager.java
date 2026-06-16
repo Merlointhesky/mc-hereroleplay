@@ -40,6 +40,7 @@ public class AttributeManager implements Listener {
         resetBaseAttribute(player, Attribute.GENERIC_ATTACK_DAMAGE);
         resetBaseAttribute(player, Attribute.GENERIC_ARMOR);
         resetBaseAttribute(player, Attribute.GENERIC_ATTACK_SPEED);
+        resetBaseAttribute(player, Attribute.GENERIC_JUMP_STRENGTH);
 
         // Clean stale modifiers
         cleanStaleModifiers(player, Attribute.GENERIC_MAX_HEALTH);
@@ -47,6 +48,7 @@ public class AttributeManager implements Listener {
         cleanStaleModifiers(player, Attribute.GENERIC_ATTACK_DAMAGE);
         cleanStaleModifiers(player, Attribute.GENERIC_ARMOR);
         cleanStaleModifiers(player, Attribute.GENERIC_ATTACK_SPEED);
+        cleanStaleModifiers(player, Attribute.GENERIC_JUMP_STRENGTH);
 
         // Vitality -> Max Health (+1 HP per 2 points)
         double healthBonus = profile.getVitalityPoints() * 0.5;
@@ -60,6 +62,10 @@ public class AttributeManager implements Listener {
         // Agility -> Movement Speed (+0.0004 speed per point)
         double speedBonus = profile.getAgilityPoints() * 0.0004;
         applyModifier(player, Attribute.GENERIC_MOVEMENT_SPEED, speedBonus);
+
+        // Agility -> Jump Strength (+0.001 strength per point)
+        double jumpBonus = profile.getAgilityPoints() * 0.001;
+        applyModifier(player, Attribute.GENERIC_JUMP_STRENGTH, jumpBonus);
 
         // Strength -> Attack Damage (+0.5 damage per point)
         double damageBonus = profile.getStrengthPoints() * 0.5;
@@ -78,6 +84,10 @@ public class AttributeManager implements Listener {
         if (maxHealth != null && player.getHealth() > maxHealth.getValue()) {
             player.setHealth(maxHealth.getValue());
         }
+
+        // Cap visual hearts to exactly 2 rows (40 half-hearts) to prevent HUD clutter/overlap
+        player.setHealthScaled(true);
+        player.setHealthScale(40.0);
     }
 
     private void cleanStaleModifiers(Player player, Attribute attribute) {
@@ -114,6 +124,8 @@ public class AttributeManager implements Listener {
                 defaultValue = 0.0;
             } else if (attribute == Attribute.GENERIC_ATTACK_SPEED) {
                 defaultValue = 4.0;
+            } else if (attribute == Attribute.GENERIC_JUMP_STRENGTH) {
+                defaultValue = 0.42;
             }
             instance.setBaseValue(defaultValue);
         }
