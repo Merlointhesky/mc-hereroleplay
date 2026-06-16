@@ -96,7 +96,7 @@ public class DatabaseManager {
         });
     }
 
-    private PlayerProfile loadProfileSync(UUID uuid) {
+    public PlayerProfile loadProfileSync(UUID uuid) {
         PlayerProfile profile = new PlayerProfile(uuid);
         String query = "SELECT * FROM hrp_profiles WHERE uuid = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {

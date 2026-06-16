@@ -24,17 +24,22 @@ public class PlayerConnectionListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        // We schedule this 1 tick later just to be safe that profile is fully loaded
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            plugin.getAttributeManager().applyAttributes(event.getPlayer());
-        }, 1L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> loadAndApply(event.getPlayer()), 1L);
     }
     
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            plugin.getAttributeManager().applyAttributes(event.getPlayer());
-        }, 1L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> loadAndApply(event.getPlayer()), 1L);
+    }
+
+    private void loadAndApply(org.bukkit.entity.Player player) {
+        com.here.hereroleplay.data.PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+        if (profile == null) {
+            plugin.getLogger().warning("Profile for " + player.getName() + " was not in cache on join/respawn. Loading synchronously...");
+            profile = plugin.getDatabaseManager().loadProfileSync(player.getUniqueId());
+            plugin.getDatabaseManager().getProfileCache().put(player.getUniqueId(), profile);
+        }
+        plugin.getAttributeManager().applyAttributes(player);
     }
 
     @EventHandler
