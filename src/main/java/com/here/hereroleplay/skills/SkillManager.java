@@ -491,15 +491,48 @@ public class SkillManager implements Listener {
         
         for (Entity entity : player.getNearbyEntities(radius, 2, radius)) {
             if (entity instanceof LivingEntity target && target != player) {
-                if (target instanceof Player || target instanceof org.bukkit.entity.Tameable || target instanceof org.bukkit.entity.Animals) {
+                if (isEnemy(target)) {
+                    target.damage(amount, player);
+                } else if (isFriend(target)) {
                     target.setHealth(Math.min(target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), target.getHealth() + amount));
                     target.getWorld().spawnParticle(Particle.HEART, target.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.1);
-                } else {
-                    target.damage(amount, player);
                 }
             }
         }
         return true;
+    }
+
+    private boolean isEnemy(LivingEntity target) {
+        if (target instanceof org.bukkit.entity.Enemy ||
+            target instanceof org.bukkit.entity.Slime ||
+            target instanceof org.bukkit.entity.Ghast ||
+            target instanceof org.bukkit.entity.Phantom ||
+            target instanceof org.bukkit.entity.Shulker ||
+            target instanceof org.bukkit.entity.EnderDragon) {
+            return true;
+        }
+
+        try {
+            org.bukkit.NamespacedKey customBossKey = new org.bukkit.NamespacedKey("heremobby", "custom_boss");
+            org.bukkit.NamespacedKey customMobKey = new org.bukkit.NamespacedKey("heremobby", "custom_mob");
+            if (target.getPersistentDataContainer().has(customBossKey, org.bukkit.persistence.PersistentDataType.STRING) ||
+                target.getPersistentDataContainer().has(customMobKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+                return true;
+            }
+        } catch (Exception ignored) {}
+
+        return false;
+    }
+
+    private boolean isFriend(LivingEntity target) {
+        return target instanceof Player ||
+               target instanceof org.bukkit.entity.Tameable ||
+               target instanceof org.bukkit.entity.Animals ||
+               target instanceof org.bukkit.entity.NPC ||
+               target instanceof org.bukkit.entity.Golem ||
+               target instanceof org.bukkit.entity.WaterMob ||
+               target instanceof org.bukkit.entity.Ambient ||
+               target instanceof org.bukkit.entity.Allay;
     }
 
     private boolean isBlacklisted(Material mat) {
