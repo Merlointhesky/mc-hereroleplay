@@ -83,7 +83,7 @@ public class CombatListener implements Listener {
             // Miner - Dense Armor damage reduction passive
             PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
             if (profile != null) {
-                int denseArmorLvl = profile.getSkillLevel("Dense Armor");
+                int denseArmorLvl = Math.min(100, profile.getSkillLevel("Dense Armor"));
                 if (denseArmorLvl > 0) {
                     double reduction = denseArmorLvl * 0.01;
                     event.setDamage(event.getDamage() * (1.0 - reduction));
@@ -113,13 +113,38 @@ public class CombatListener implements Listener {
             isRanged = true;
         }
 
+        // --- NECROMANCER SUMMON FRIENDLINESS CHECKS ---
+        // 1. Summoner damages minion
+        if (event.getEntity().hasMetadata("summoner_uuid")) {
+            String summonerUuidStr = event.getEntity().getMetadata("summoner_uuid").get(0).asString();
+            if (player != null && player.getUniqueId().toString().equals(summonerUuidStr)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+        // 2. Minion damages summoner
+        if (event.getEntity() instanceof Player targetPlayer) {
+            org.bukkit.entity.Entity damager = event.getDamager();
+            if (damager instanceof org.bukkit.entity.Projectile proj && proj.getShooter() instanceof org.bukkit.entity.Entity shooter) {
+                damager = shooter;
+            }
+            if (damager.hasMetadata("summoner_uuid")) {
+                String summonerUuidStr = damager.getMetadata("summoner_uuid").get(0).asString();
+                if (targetPlayer.getUniqueId().toString().equals(summonerUuidStr)) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+        // ----------------------------------------------
+
         if (player == null) return;
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
         if (isMelee && event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
             // Heavy Strike passive (Warrior)
-            int heavyStrikeLvl = profile.getSkillLevel("Heavy Strike");
+            int heavyStrikeLvl = Math.min(100, profile.getSkillLevel("Heavy Strike"));
             if (heavyStrikeLvl > 0) {
                 double multiplier = 1.0 + heavyStrikeLvl * 0.01;
                 event.setDamage(event.getDamage() * multiplier);
@@ -128,16 +153,29 @@ public class CombatListener implements Listener {
 
         if (isRanged) {
             // Precision passive (Ranger)
-            int precisionLvl = profile.getSkillLevel("Precision");
+            int precisionLvl = Math.min(100, profile.getSkillLevel("Precision"));
             if (precisionLvl > 0) {
                 double critChance = precisionLvl * 0.01;
                 if (Math.random() < critChance) {
-                    int critDamageLvl = profile.getSkillLevel("Critical Damage");
+                    int critDamageLvl = Math.min(100, profile.getSkillLevel("Critical Damage"));
                     double critMultiplier = 1.5 + critDamageLvl * 0.01;
                     event.setDamage(event.getDamage() * critMultiplier);
                     player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1f, 1.2f);
                     event.getEntity().getWorld().spawnParticle(org.bukkit.Particle.CRIT, event.getEntity().getLocation().add(0, 1, 0), 10, 0.2, 0.5, 0.2, 0.1);
                     player.sendMessage("§a★ Precision Critical Strike!");
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntityTarget(org.bukkit.event.entity.EntityTargetLivingEntityEvent event) {
+        if (event.getTarget() instanceof Player player) {
+            org.bukkit.entity.Entity entity = event.getEntity();
+            if (entity.hasMetadata("summoner_uuid")) {
+                String summonerUuid = entity.getMetadata("summoner_uuid").get(0).asString();
+                if (player.getUniqueId().toString().equals(summonerUuid)) {
+                    event.setCancelled(true);
                 }
             }
         }

@@ -57,7 +57,7 @@ public class ManaManager {
                 profile.setCurrentMana(maxMana);
             } else if (currentMana < maxMana) {
                 double regenAmount = baseRegen + (profile.getIntelligencePoints() * intelligenceRegenBonus);
-                int spellEchoLvl = profile.getSkillLevel("Spell Echo");
+                int spellEchoLvl = Math.min(100, profile.getSkillLevel("Spell Echo"));
                 if (spellEchoLvl > 0) {
                     regenAmount *= (1.0 + spellEchoLvl * 0.01);
                 }
@@ -140,14 +140,18 @@ public class ManaManager {
         switch (skillName) {
             case "Cleave":
             case "Holy Nova":
-            case "Arcane Missile":
+            case "Rock Blast":
             case "Fireball":
             case "Quick Shot":
             case "Boomerang Throw":
             case "Laser DOT":
             case "Thunder Wave":
+            case "Water Cannon":
+            case "Wind Blast":
+            case "Soul Drain":
+            case "Piercing Bolt":
+            case "Spear Knight":
                 return "F";
-            case "Chain Lightning":
             case "Aegis":
             case "Rejuvenation":
             case "Timber":
@@ -155,6 +159,11 @@ public class ManaManager {
             case "Tunnel Vision":
             case "Transmutation":
             case "Water Wave":
+            case "Fire Rain":
+            case "Gale Force":
+            case "Quicksand":
+            case "Raise Undead":
+            case "Assassination":
                 return "Shift+F";
             default:
                 return "F";
@@ -196,14 +205,19 @@ public class ManaManager {
                         case "Holy Nova":
                             matches = handMat == Material.SHIELD;
                             break;
-                        case "Arcane Missile":
+                        case "Rock Blast":
+                        case "Quicksand":
                             matches = handMat == Material.STICK;
                             break;
                         case "Fireball":
+                        case "Fire Rain":
                             matches = handMat == Material.BLAZE_ROD;
                             break;
                         case "Quick Shot":
                             matches = handMat == Material.BOW;
+                            break;
+                        case "Piercing Bolt":
+                            matches = handMat == Material.CROSSBOW;
                             break;
                         case "Aegis":
                             matches = handMat == Material.SHIELD;
@@ -232,11 +246,23 @@ public class ManaManager {
                         case "Laser DOT":
                             matches = handMat == Material.TRIDENT;
                             break;
-                        case "Chain Lightning":
-                            matches = handMat == Material.BLAZE_ROD;
-                            break;
+                        case "Water Cannon":
                         case "Water Wave":
-                            matches = handMat == Material.STICK;
+                            matches = handMat == Material.TROPICAL_FISH;
+                            break;
+                        case "Wind Blast":
+                        case "Gale Force":
+                            matches = handMat == Material.BREEZE_ROD;
+                            break;
+                        case "Raise Undead":
+                        case "Soul Drain":
+                            matches = handMat == Material.BONE;
+                            break;
+                        case "Spear Knight":
+                            matches = handName.endsWith("_SPEAR");
+                            break;
+                        case "Assassination":
+                            matches = handName.contains("SWORD");
                             break;
                     }
                     

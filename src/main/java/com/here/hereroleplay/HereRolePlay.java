@@ -72,7 +72,7 @@ public final class HereRolePlay extends JavaPlugin {
             for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
                 com.here.hereroleplay.data.PlayerProfile profile = databaseManager.getProfile(player.getUniqueId());
                 if (profile != null) {
-                    int efficiencyLvl = profile.getSkillLevel("Efficiency");
+                    int efficiencyLvl = Math.min(100, profile.getSkillLevel("Efficiency"));
                     if (efficiencyLvl > 0) {
                         int amp = (efficiencyLvl - 1) / 10;
                         player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HASTE, 160, amp, true, false, true));

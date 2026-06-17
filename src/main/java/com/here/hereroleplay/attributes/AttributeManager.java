@@ -41,6 +41,7 @@ public class AttributeManager implements Listener {
         resetBaseAttribute(player, Attribute.GENERIC_ARMOR);
         resetBaseAttribute(player, Attribute.GENERIC_ATTACK_SPEED);
         resetBaseAttribute(player, Attribute.GENERIC_JUMP_STRENGTH);
+        resetBaseAttribute(player, Attribute.GENERIC_KNOCKBACK_RESISTANCE);
 
         // Clean stale modifiers
         cleanStaleModifiers(player, Attribute.GENERIC_MAX_HEALTH);
@@ -49,11 +50,12 @@ public class AttributeManager implements Listener {
         cleanStaleModifiers(player, Attribute.GENERIC_ARMOR);
         cleanStaleModifiers(player, Attribute.GENERIC_ATTACK_SPEED);
         cleanStaleModifiers(player, Attribute.GENERIC_JUMP_STRENGTH);
+        cleanStaleModifiers(player, Attribute.GENERIC_KNOCKBACK_RESISTANCE);
 
         // Vitality -> Max Health (+1 HP per 2 points)
         double healthBonus = profile.getVitalityPoints() * 0.5;
         // Paladin -> Guardian passive (+1 heart / 2.0 HP per level)
-        int guardianLvl = profile.getSkillLevel("Guardian");
+        int guardianLvl = Math.min(100, profile.getSkillLevel("Guardian"));
         if (guardianLvl > 0) {
             healthBonus += guardianLvl * 2.0;
         }
@@ -72,12 +74,20 @@ public class AttributeManager implements Listener {
         applyModifier(player, Attribute.GENERIC_ATTACK_DAMAGE, damageBonus);
 
         // Warrior -> Swift Strike (+1% attack speed per level, default base is 4.0)
-        int swiftStrikeLvl = profile.getSkillLevel("Swift Strike");
+        int swiftStrikeLvl = Math.min(100, profile.getSkillLevel("Swift Strike"));
         double attackSpeedBonus = 0.0;
         if (swiftStrikeLvl > 0) {
             attackSpeedBonus = swiftStrikeLvl * 0.01 * 4.0;
         }
         applyModifier(player, Attribute.GENERIC_ATTACK_SPEED, attackSpeedBonus);
+
+        // Paladin -> Iron Resolve (+1% knockback resistance per level)
+        int ironResolveLvl = Math.min(100, profile.getSkillLevel("Iron Resolve"));
+        double knockbackResBonus = 0.0;
+        if (ironResolveLvl > 0) {
+            knockbackResBonus = ironResolveLvl * 0.01;
+        }
+        applyModifier(player, Attribute.GENERIC_KNOCKBACK_RESISTANCE, knockbackResBonus);
         
         // Ensure health doesn't exceed the new max
         AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
@@ -126,6 +136,8 @@ public class AttributeManager implements Listener {
                 defaultValue = 4.0;
             } else if (attribute == Attribute.GENERIC_JUMP_STRENGTH) {
                 defaultValue = 0.42;
+            } else if (attribute == Attribute.GENERIC_KNOCKBACK_RESISTANCE) {
+                defaultValue = 0.0;
             }
             instance.setBaseValue(defaultValue);
         }
@@ -152,7 +164,7 @@ public class AttributeManager implements Listener {
         if (event.getEntity() instanceof Player player) {
             PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
             if (profile != null) {
-                int level = profile.getSkillLevel("Power Surge");
+                int level = Math.min(100, profile.getSkillLevel("Power Surge"));
                 if (level > 0) {
                     Entity mount = event.getMount();
                     if (mount instanceof LivingEntity livingMount) {
@@ -198,7 +210,7 @@ public class AttributeManager implements Listener {
         if (passenger instanceof Player player) {
             PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
             if (profile != null) {
-                int level = profile.getSkillLevel("Power Surge");
+                int level = Math.min(100, profile.getSkillLevel("Power Surge"));
                 if (level > 0) {
                     double multiplier = 1.0 + level * 0.01;
                     if (vehicle instanceof org.bukkit.entity.Minecart minecart) {

@@ -125,7 +125,7 @@ public class CollectListener implements Listener {
             if (isCrop) {
                 PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
                 if (profile != null) {
-                    int harvestLvl = profile.getSkillLevel("Bountiful Harvest");
+                    int harvestLvl = Math.min(100, profile.getSkillLevel("Bountiful Harvest"));
                     if (harvestLvl > 0) {
                         double doubleChance = harvestLvl * 0.01;
                         if (Math.random() < doubleChance) {
@@ -154,7 +154,7 @@ public class CollectListener implements Listener {
         Player player = event.getPlayer();
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile != null) {
-            int hackerLvl = profile.getSkillLevel("Hacker");
+            int hackerLvl = Math.min(100, profile.getSkillLevel("Hacker"));
             if (hackerLvl > 0) {
                 double ignoreChance = hackerLvl * 0.01;
                 if (Math.random() < ignoreChance) {
@@ -169,11 +169,39 @@ public class CollectListener implements Listener {
         Player player = event.getPlayer();
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile != null) {
-            int repairLvl = profile.getSkillLevel("Repair");
+            int repairLvl = Math.min(100, profile.getSkillLevel("Repair"));
             if (repairLvl > 0) {
                 double multiplier = 1.0 + repairLvl * 0.01;
                 int originalAmount = event.getRepairAmount();
                 event.setRepairAmount((int) Math.round(originalAmount * multiplier));
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntityShootBow(org.bukkit.event.entity.EntityShootBowEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (event.getBow() == null || event.getBow().getType() != Material.CROSSBOW) return;
+
+        PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+        if (profile == null) return;
+
+        int recycleLvl = Math.min(100, profile.getSkillLevel("Recycle Bolt"));
+        if (recycleLvl > 0) {
+            double saveChance = recycleLvl * 0.01;
+            if (Math.random() < saveChance) {
+                org.bukkit.inventory.ItemStack consumable = event.getConsumable();
+                if (consumable != null && consumable.getType() != Material.AIR) {
+                    org.bukkit.inventory.ItemStack refund = consumable.clone();
+                    refund.setAmount(1);
+                    org.bukkit.Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (player.isOnline()) {
+                            player.getInventory().addItem(refund);
+                            player.updateInventory();
+                            player.sendMessage(org.bukkit.ChatColor.GREEN + "★ Recycle Bolt: Arrow preserved!");
+                        }
+                    });
+                }
             }
         }
     }

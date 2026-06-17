@@ -113,21 +113,30 @@ public class ProfileGUI implements CustomGUI {
         switch (name) {
             case "Cleave":
             case "Quick Shot":
-            case "Arcane Missile":
+            case "Rock Blast":
             case "Fireball":
             case "Boomerang Throw":
             case "Laser DOT":
             case "Thunder Wave":
+            case "Spear Knight":
+            case "Water Cannon":
+            case "Wind Blast":
+            case "Soul Drain":
+            case "Piercing Bolt":
                 return "F";
             case "Holy Nova":
                 return "F (Block+F if off-hand)";
-            case "Chain Lightning":
             case "Rejuvenation":
             case "Timber":
             case "Diggy Diggy Hole":
             case "Tunnel Vision":
             case "Transmutation":
             case "Water Wave":
+            case "Assassination":
+            case "Quicksand":
+            case "Fire Rain":
+            case "Gale Force":
+            case "Raise Undead":
                 return "Shift+F";
             case "Aegis":
                 return "Shift+F (Block+Shift+F if off-hand)";
@@ -142,8 +151,8 @@ public class ProfileGUI implements CustomGUI {
                 return String.format("Sweep attack dealing %.1f damage in %.1f blocks range.", 10.0 + (level - 1) * 2.0, 3.0 + (level - 1) * 0.2);
             case "Quick Shot":
                 return String.format("Fires a rapid sequence of %d arrows.", 3 + (level - 1));
-            case "Arcane Missile":
-                return String.format("Shoots a magic missile dealing %.1f damage.", 8.0 + (level - 1) * 2.5);
+            case "Rock Blast":
+                return String.format("Shoots a high-impact rock projectile dealing %.1f damage.", 8.0 + (level - 1) * 2.5);
             case "Fireball":
                 return String.format("Explosive fireball dealing %.1f damage and igniting for %.1fs.", 12.0 + (level - 1) * 3.0, 2.0 + (level - 1) * 0.5);
             case "Timber":
@@ -166,10 +175,28 @@ public class ProfileGUI implements CustomGUI {
                 return String.format("Strikes lightning on yourself, dealing %.1f damage and pushing enemies back.", 10.0 + level * 2.0);
             case "Laser DOT":
                 return String.format("Channels a laser beam dealing %.1f damage per tick over 3s.", 2.0 + level * 0.5);
-            case "Chain Lightning":
-                return String.format("Hits facing target for %.1f damage and jumps up to %d times.", 10.0 + (level - 1) * 2.0, 1 + level / 10);
             case "Water Wave":
                 return String.format("Deals %.1f damage, pushes back and creates temporary water.", 5.0 + level * 1.5);
+            case "Spear Knight":
+                return String.format("Charges forward on mount, trampling enemies for %.1f damage with temporary mount safety.", 10.0 + level * 2.0);
+            case "Assassination":
+                return String.format("Teleports behind target within %.1f blocks, dealing critical weapon damage.", 8.0 + (level - 1) * 0.2);
+            case "Piercing Bolt":
+                return String.format("Fires high-velocity piercing bolt dealing %.1f damage.", 12.0 + (level - 1) * 2.0);
+            case "Quicksand":
+                return String.format("Turns landing block and area in a %d-block radius into sand, slowing mobs.", 1 + level / 5);
+            case "Fire Rain":
+                return String.format("Channels falling fire dealing %.1f splash damage per tick over 3.0s.", 4.0 + level * 0.5);
+            case "Water Cannon":
+                return String.format("Projects water forward, pushing targets with %.2f force and stopping jumps for 5s.", 1.0 + level * 0.1);
+            case "Wind Blast":
+                return String.format("Launches an explosive wind charge projectile dealing %.1f damage.", 8.0 + (level - 1) * 2.0);
+            case "Gale Force":
+                return String.format("Launches player upward by %.2f blocks, knocking back nearby mobs.", 1.0 + level * 0.05);
+            case "Raise Undead":
+                return String.format("Summons %d friendly skeleton cohort(s) to fight for 30s.", 1 + level / 10);
+            case "Soul Drain":
+                return String.format("Channels health from skeletons, dealing and healing %.1f HP per 0.5s.", (2.0 + level * 0.5) / 2.0);
             default:
                 return "No effect description.";
         }
@@ -207,6 +234,14 @@ public class ProfileGUI implements CustomGUI {
                 return String.format("+%d%% Potion Duration", level);
             case "Master of the Craft":
                 return "Doubles enchants and potions created";
+            case "Recycle Bolt":
+                return String.format("+%d%% chance to not consume crossbow arrows", level);
+            case "Fertilizer":
+                return String.format("+%d%% crop growth chance in 5-block radius every 4s", level);
+            case "Iron Resolve":
+                return String.format("+%d%% Knockback Resistance", level);
+            case "Deathly Rejuvenation":
+                return String.format("+%.2f HP/s passive regeneration", level * 0.01);
             default:
                 return "No effect description.";
         }

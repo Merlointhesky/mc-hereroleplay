@@ -34,6 +34,7 @@ public class SkillManager implements Listener {
 
     public SkillManager(HereRolePlay plugin) {
         this.plugin = plugin;
+        startPassiveTasks();
     }
 
     @EventHandler
@@ -74,10 +75,22 @@ public class SkillManager implements Listener {
             if (player.isSneaking()) {
                 // Shift + F abilities
                 if (handItem == Material.STICK) {
-                    executeWaterWave(player, profile);
+                    executeQuicksand(player, profile);
                     executed = true;
                 } else if (handItem == Material.BLAZE_ROD) {
-                    executeChainLightning(player, profile);
+                    executeFireRain(player, profile);
+                    executed = true;
+                } else if (handItem == Material.TROPICAL_FISH) {
+                    executeWaterWave(player, profile);
+                    executed = true;
+                } else if (handItem == Material.BREEZE_ROD) {
+                    executeGaleForce(player, profile);
+                    executed = true;
+                } else if (handItem == Material.BONE) {
+                    executeRaiseUndead(player, profile);
+                    executed = true;
+                } else if (handItemName.contains("SWORD")) {
+                    executeAssassination(player, profile);
                     executed = true;
                 } else if (handItem == Material.SHIELD) {
                     executed = executeAegis(player, profile);
@@ -117,11 +130,31 @@ public class SkillManager implements Listener {
                 } else if (handItem == Material.SHIELD) {
                     executed = executeHolyNova(player, profile);
                 } else if (handItem == Material.STICK) {
-                    executeArcaneMissile(player, profile);
+                    executeRockBlast(player, profile);
                     executed = true;
                 } else if (handItem == Material.BLAZE_ROD) {
                     executeFireball(player, profile);
                     executed = true;
+                } else if (handItem == Material.TROPICAL_FISH) {
+                    executeWaterCannon(player, profile);
+                    executed = true;
+                } else if (handItem == Material.BREEZE_ROD) {
+                    executeWindBlast(player, profile);
+                    executed = true;
+                } else if (handItem == Material.BONE) {
+                    executeSoulDrain(player, profile);
+                    executed = true;
+                } else if (handItem == Material.CROSSBOW) {
+                    executePiercingBolt(player, profile);
+                    executed = true;
+                } else if (handItemName.endsWith("_SPEAR")) {
+                    if (player.isInsideVehicle() && player.getVehicle() instanceof org.bukkit.entity.AbstractHorse) {
+                        executeSpearKnight(player, profile);
+                        executed = true;
+                    } else {
+                        player.sendMessage(ChatColor.RED + "Spear Knight requires you to be mounted on a horse!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+                    }
                 } else if (handItem == Material.BOW) {
                     executeQuickShot(player, profile);
                     executed = true;
@@ -146,10 +179,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 20.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Timber!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Timber")) return;
         
         Block targetBlock = player.getTargetBlockExact(5);
         if (targetBlock != null && org.bukkit.Tag.LOGS.isTagged(targetBlock.getType())) {
@@ -175,10 +205,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 20.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Diggy Diggy Hole!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Diggy Diggy Hole")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.GREEN + "You used " + ChatColor.DARK_GREEN + "Diggy Diggy Hole" + ChatColor.GREEN + "!");
@@ -219,10 +246,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 20.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Tunnel Vision!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Tunnel Vision")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.GREEN + "You used " + ChatColor.DARK_GREEN + "Tunnel Vision" + ChatColor.GREEN + "!");
@@ -276,10 +300,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 30.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Cleave!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Cleave")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.RED + "You used " + ChatColor.DARK_RED + "Cleave" + ChatColor.RED + "!");
@@ -296,26 +317,25 @@ public class SkillManager implements Listener {
         }
     }
 
-    private void executeArcaneMissile(Player player, PlayerProfile profile) {
-        int level = profile.getSkillLevel("Arcane Missile");
+    private void executeRockBlast(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Rock Blast");
         if (level == 0) {
             return;
         }
 
         double cost = 15.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Arcane Missile!");
+        if (!checkMana(player, profile, cost, "Rock Blast")) {
             return;
         }
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
-        player.sendMessage(ChatColor.LIGHT_PURPLE + "You used " + ChatColor.DARK_PURPLE + "Arcane Missile" + ChatColor.LIGHT_PURPLE + "!");
-        player.playSound(player.getLocation(), Sound.ENTITY_EVOKER_CAST_SPELL, 1f, 2f);
+        player.sendMessage(ChatColor.GRAY + "You used " + ChatColor.DARK_GRAY + "Rock Blast" + ChatColor.GRAY + "!");
+        player.playSound(player.getLocation(), Sound.ENTITY_EVOKER_CAST_SPELL, 1f, 1.5f);
         
         org.bukkit.entity.Snowball projectile = player.launchProjectile(org.bukkit.entity.Snowball.class);
-        projectile.setCustomName("Arcane Missile");
+        projectile.setCustomName("Rock Blast");
         projectile.setGlowing(true);
-        projectile.setMetadata("arcane_missile_lvl", new FixedMetadataValue(plugin, level));
+        projectile.setMetadata("rock_blast_lvl", new FixedMetadataValue(plugin, level));
         projectile.setVelocity(player.getLocation().getDirection().multiply(2.0));
     }
 
@@ -326,10 +346,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 25.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Fireball!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Fireball")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.GOLD + "You used " + ChatColor.RED + "Fireball" + ChatColor.GOLD + "!");
@@ -348,10 +365,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 20.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Quick Shot!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Quick Shot")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.GREEN + "You used " + ChatColor.DARK_GREEN + "Quick Shot" + ChatColor.GREEN + "!");
@@ -380,10 +394,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 25.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Rejuvenation!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Rejuvenation")) return;
 
         double radius = 4.0 + (level - 1) * 0.5;
 
@@ -453,10 +464,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 40.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Aegis!");
-            return false;
-        }
+        if (!checkMana(player, profile, cost, "Aegis")) return false;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.GOLD + "Shield Aegis activated!");
@@ -475,10 +483,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 35.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Holy Nova!");
-            return false;
-        }
+        if (!checkMana(player, profile, cost, "Holy Nova")) return false;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.YELLOW + "Holy Nova casted!");
@@ -611,10 +616,7 @@ public class SkillManager implements Listener {
         }
 
         double cost = 30.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Transmutation!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Transmutation")) return;
 
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material heldType = heldItem.getType();
@@ -686,11 +688,11 @@ public class SkillManager implements Listener {
     @EventHandler
     public void onProjectileHit(org.bukkit.event.entity.ProjectileHitEvent event) {
         if (event.getEntity() instanceof org.bukkit.entity.Snowball snowball) {
-            if (snowball.hasMetadata("arcane_missile_lvl")) {
-                int level = snowball.getMetadata("arcane_missile_lvl").get(0).asInt();
+            if (snowball.hasMetadata("rock_blast_lvl")) {
+                int level = snowball.getMetadata("rock_blast_lvl").get(0).asInt();
                 double damage = 8.0 + (level - 1) * 2.5;
-                snowball.getWorld().spawnParticle(Particle.WITCH, snowball.getLocation(), 15, 0.2, 0.2, 0.2, 0.1);
-                snowball.getWorld().playSound(snowball.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1f, 1.5f);
+                snowball.getWorld().spawnParticle(Particle.BLOCK, snowball.getLocation(), 15, 0.2, 0.2, 0.2, 0.1, Material.COBBLESTONE.createBlockData());
+                snowball.getWorld().playSound(snowball.getLocation(), Sound.BLOCK_STONE_BREAK, 1f, 1f);
                 if (event.getHitEntity() instanceof LivingEntity target) {
                     if (snowball.getShooter() instanceof Player shooter) {
                         target.damage(damage, shooter);
@@ -720,6 +722,24 @@ public class SkillManager implements Listener {
                     }
                 }
             }
+        } else if (event.getEntity() instanceof org.bukkit.entity.WindCharge windCharge) {
+            if (windCharge.hasMetadata("wind_blast_lvl")) {
+                int level = windCharge.getMetadata("wind_blast_lvl").get(0).asInt();
+                double damage = 8.0 + (level - 1) * 2.0;
+                Location loc = windCharge.getLocation();
+                loc.getWorld().spawnParticle(Particle.GUST_EMITTER_LARGE, loc, 1);
+                loc.getWorld().playSound(loc, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1f, 1f);
+                double radius = 4.0;
+                for (Entity entity : windCharge.getNearbyEntities(radius, radius, radius)) {
+                    if (entity instanceof LivingEntity target && entity != windCharge.getShooter()) {
+                        if (windCharge.getShooter() instanceof Player shooter) {
+                            target.damage(damage, shooter);
+                        } else {
+                            target.damage(damage);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -731,7 +751,7 @@ public class SkillManager implements Listener {
                 if (effect != null && event.getCause().name().equals("POTION")) {
                     PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
                     if (profile != null) {
-                        int level = profile.getSkillLevel("Catalyst");
+                        int level = Math.min(100, profile.getSkillLevel("Catalyst"));
                         if (level > 0) {
                             double durationBonus = 1.0 + level * 0.01;
                             int newDuration = (int) (effect.getDuration() * durationBonus);
@@ -753,7 +773,7 @@ public class SkillManager implements Listener {
             if (event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.FALL) {
                 PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
                 if (profile != null) {
-                    int level = profile.getSkillLevel("Domain Lord");
+                    int level = Math.min(100, profile.getSkillLevel("Domain Lord"));
                     if (level > 0) {
                         double reduction = level * 0.01;
                         if (reduction >= 1.0) {
@@ -837,93 +857,12 @@ public class SkillManager implements Listener {
                mat == Material.SWEET_BERRY_BUSH || mat == Material.MELON_STEM || mat == Material.PUMPKIN_STEM;
     }
 
-    private void executeChainLightning(Player player, PlayerProfile profile) {
-        int level = profile.getSkillLevel("Chain Lightning");
-        if (level == 0) return;
-
-        double cost = 20.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Chain Lightning!");
-            return;
-        }
-
-        // Raycast up to 15 blocks
-        Location eyeLoc = player.getEyeLocation();
-        org.bukkit.util.Vector dir = eyeLoc.getDirection().normalize();
-        LivingEntity firstTarget = null;
-        for (double d = 0; d < 15; d += 0.5) {
-            Location checkLoc = eyeLoc.clone().add(dir.clone().multiply(d));
-            checkLoc.getWorld().spawnParticle(Particle.ENCHANTED_HIT, checkLoc, 1, 0, 0, 0, 0);
-            for (Entity entity : checkLoc.getWorld().getNearbyEntities(checkLoc, 0.5, 0.5, 0.5)) {
-                if (entity instanceof LivingEntity target && target != player) {
-                    firstTarget = target;
-                    break;
-                }
-            }
-            if (firstTarget != null) break;
-        }
-
-        if (firstTarget == null) {
-            player.sendMessage(ChatColor.GRAY + "No target found in direction.");
-            return;
-        }
-
-        profile.setCurrentMana(profile.getCurrentMana() - cost);
-        player.sendMessage(ChatColor.YELLOW + "You used " + ChatColor.GOLD + "Chain Lightning" + ChatColor.YELLOW + "!");
-        player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5f, 2f);
-
-        double damage = 10.0 + (level - 1) * 2.0;
-        int maxJumps = 1 + (level / 10);
-        java.util.Set<LivingEntity> hitSet = new java.util.HashSet<>();
-
-        LivingEntity current = firstTarget;
-        double currentDamage = damage;
-
-        for (int jump = 0; jump <= maxJumps; jump++) {
-            hitSet.add(current);
-            current.getWorld().strikeLightningEffect(current.getLocation());
-            current.damage(currentDamage, player);
-
-            // Find next target
-            LivingEntity next = null;
-            double bestDistSq = Double.MAX_VALUE;
-            for (Entity e : current.getNearbyEntities(8, 8, 8)) {
-                if (e instanceof LivingEntity candidate && candidate != player && !hitSet.contains(candidate)) {
-                    double distSq = candidate.getLocation().distanceSquared(current.getLocation());
-                    if (distSq < bestDistSq) {
-                        bestDistSq = distSq;
-                        next = candidate;
-                    }
-                }
-            }
-
-            if (next == null) break;
-
-            // Draw line between current and next
-            drawParticleLine(current.getLocation().add(0, 1, 0), next.getLocation().add(0, 1, 0));
-            currentDamage = Math.max(5.0, currentDamage * 0.95);
-            current = next;
-        }
-    }
-
-    private void drawParticleLine(Location loc1, Location loc2) {
-        double dist = loc1.distance(loc2);
-        org.bukkit.util.Vector dir = loc2.toVector().subtract(loc1.toVector()).normalize();
-        for (double d = 0; d < dist; d += 0.5) {
-            Location p = loc1.clone().add(dir.clone().multiply(d));
-            p.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, p, 1, 0, 0, 0, 0);
-        }
-    }
-
     private void executeWaterWave(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Water Wave");
         if (level == 0) return;
 
         double cost = 30.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Water Wave!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Water Wave")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.BLUE + "You used " + ChatColor.AQUA + "Water Wave" + ChatColor.BLUE + "!");
@@ -988,15 +927,562 @@ public class SkillManager implements Listener {
         }
     }
 
+    private boolean checkMana(Player player, PlayerProfile profile, double cost, String skillName) {
+        if (profile.getCurrentMana() < cost) {
+            player.sendMessage(ChatColor.RED + "Not enough mana for " + skillName + "!");
+            player.playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1f, 1.5f);
+            return false;
+        }
+        return true;
+    }
+
+    private void executeWindBlast(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Wind Blast");
+        if (level == 0) return;
+        double cost = 20.0;
+        if (!checkMana(player, profile, cost, "Wind Blast")) return;
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.DARK_AQUA + "You used " + ChatColor.AQUA + "Wind Blast" + ChatColor.DARK_AQUA + "!");
+        org.bukkit.entity.WindCharge windCharge = player.launchProjectile(org.bukkit.entity.WindCharge.class);
+        windCharge.setCustomName("Wind Blast");
+        windCharge.setMetadata("wind_blast_lvl", new FixedMetadataValue(plugin, level));
+        windCharge.setVelocity(player.getLocation().getDirection().multiply(1.5));
+        player.playSound(player.getLocation(), Sound.ENTITY_WIND_CHARGE_THROW, 1f, 1.2f);
+    }
+
+    private void executeGaleForce(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Gale Force");
+        if (level == 0) return;
+        double cost = 25.0;
+        if (!checkMana(player, profile, cost, "Gale Force")) return;
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.DARK_AQUA + "You used " + ChatColor.AQUA + "Gale Force" + ChatColor.DARK_AQUA + "!");
+        
+        double launchHeight = 1.0 + level * 0.05;
+        org.bukkit.util.Vector launchVec = player.getVelocity();
+        launchVec.setY(launchHeight);
+        player.setVelocity(launchVec);
+        
+        player.playSound(player.getLocation(), Sound.ENTITY_BREEZE_WIND_BURST, 1f, 1f);
+        player.getWorld().spawnParticle(Particle.GUST_EMITTER_SMALL, player.getLocation(), 10, 0.5, 0.2, 0.5, 0.1);
+        
+        double radius = 5.0;
+        for (Entity entity : player.getNearbyEntities(radius, 3, radius)) {
+            if (entity instanceof LivingEntity target && target != player && isEnemy(target)) {
+                org.bukkit.util.Vector push = target.getLocation().toVector().subtract(player.getLocation().toVector());
+                push.setY(0);
+                if (push.lengthSquared() > 0) {
+                    push.normalize();
+                } else {
+                    push = new org.bukkit.util.Vector(0, 0, 0);
+                }
+                push.multiply(1.5).setY(0.4);
+                target.setVelocity(push);
+                target.getWorld().spawnParticle(Particle.GUST, target.getLocation(), 3, 0.2, 0.2, 0.2, 0.1);
+            }
+        }
+    }
+
+    private void executeFireRain(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Fire Rain");
+        if (level == 0) return;
+        double cost = 30.0;
+        if (!checkMana(player, profile, cost, "Fire Rain")) return;
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.GOLD + "Channelling " + ChatColor.RED + "Fire Rain" + ChatColor.GOLD + "!");
+        
+        double damage = 4.0 + level * 0.5;
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int ticks = 0;
+            @Override
+            public void run() {
+                if (!player.isOnline() || player.isDead() || player.getInventory().getItemInMainHand().getType() != Material.BLAZE_ROD || ticks >= 60) {
+                    cancel();
+                    return;
+                }
+                ticks += 2;
+                
+                double angle = Math.random() * Math.PI * 2;
+                double r = Math.random() * 6.0;
+                Location loc = player.getLocation().add(Math.cos(angle) * r, 0, Math.sin(angle) * r);
+                
+                Block highest = player.getWorld().getHighestBlockAt(loc);
+                Location targetLoc = highest.getLocation().add(0.5, 1.0, 0.5);
+                
+                Location topLoc = targetLoc.clone().add(0, 5, 0);
+                double steps = 10;
+                for (int i = 0; i <= steps; i++) {
+                    double pct = i / steps;
+                    Location partLoc = topLoc.clone().add(targetLoc.clone().subtract(topLoc).multiply(pct));
+                    partLoc.getWorld().spawnParticle(Particle.FLAME, partLoc, 1, 0, 0, 0, 0.02);
+                }
+                
+                targetLoc.getWorld().playSound(targetLoc, Sound.ENTITY_FIREWORK_ROCKET_SHOOT, 0.5f, 1.5f);
+                targetLoc.getWorld().spawnParticle(Particle.LAVA, targetLoc, 5, 0.2, 0.2, 0.2, 0.1);
+                
+                for (Entity entity : targetLoc.getWorld().getNearbyEntities(targetLoc, 2.0, 2.0, 2.0)) {
+                    if (entity instanceof LivingEntity enemy && enemy != player && isEnemy(enemy)) {
+                        enemy.damage(damage, player);
+                        enemy.setFireTicks(40);
+                    }
+                }
+                
+                Block targetBlock = targetLoc.getBlock();
+                if (targetBlock.getType() == Material.AIR || targetBlock.getType() == Material.CAVE_AIR) {
+                    if (targetBlock.getRelative(org.bukkit.block.BlockFace.DOWN).getType().isSolid()) {
+                        targetBlock.setType(Material.FIRE);
+                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                            if (targetBlock.getType() == Material.FIRE) {
+                                targetBlock.setType(Material.AIR);
+                            }
+                        }, 100L);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 2L);
+    }
+
+    private void executeWaterCannon(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Water Cannon");
+        if (level == 0) return;
+        double cost = 25.0;
+        if (!checkMana(player, profile, cost, "Water Cannon")) return;
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.BLUE + "You used " + ChatColor.AQUA + "Water Cannon" + ChatColor.BLUE + "!");
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_SPLASH, 1f, 1f);
+        
+        Location eyeLoc = player.getEyeLocation();
+        org.bukkit.util.Vector dir = eyeLoc.getDirection().normalize();
+        double range = 12.0;
+        double pushForce = 1.0 + level * 0.1;
+        
+        for (double d = 0; d < range; d += 0.5) {
+            Location checkLoc = eyeLoc.clone().add(dir.clone().multiply(d));
+            checkLoc.getWorld().spawnParticle(Particle.SPLASH, checkLoc, 3, 0.1, 0.1, 0.1, 0.05);
+            
+            for (Entity entity : checkLoc.getWorld().getNearbyEntities(checkLoc, 1.2, 1.2, 1.2)) {
+                if (entity instanceof LivingEntity target && target != player) {
+                    org.bukkit.util.Vector push = target.getLocation().toVector().subtract(player.getLocation().toVector());
+                    push.setY(0);
+                    if (push.lengthSquared() > 0) {
+                        push.normalize();
+                    } else {
+                        push = dir.clone().setY(0).normalize();
+                    }
+                    push.multiply(pushForce).setY(0.3);
+                    target.setVelocity(push);
+                    
+                    target.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST, 100, 200));
+                    target.getWorld().spawnParticle(Particle.FALLING_WATER, target.getLocation().add(0, 1.5, 0), 10, 0.2, 0.2, 0.2, 0.05);
+                }
+            }
+        }
+    }
+
+    private void executeQuicksand(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Quicksand");
+        if (level == 0) return;
+        double cost = 25.0;
+        if (!checkMana(player, profile, cost, "Quicksand")) return;
+        
+        Block hitBlock = null;
+        Location eyeLoc = player.getEyeLocation();
+        org.bukkit.util.Vector dir = eyeLoc.getDirection().normalize();
+        for (double d = 0; d < 25.0; d += 0.5) {
+            Location checkLoc = eyeLoc.clone().add(dir.clone().multiply(d));
+            checkLoc.getWorld().spawnParticle(Particle.FALLING_DUST, checkLoc, 1, 0, 0, 0, 0, Material.SAND.createBlockData());
+            Block b = checkLoc.getBlock();
+            if (b.getType().isSolid() && !isBlacklisted(b.getType())) {
+                hitBlock = b;
+                break;
+            }
+        }
+        
+        if (hitBlock == null) {
+            player.sendMessage(ChatColor.RED + "Quicksand did not hit any solid blocks!");
+            return;
+        }
+        
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.YELLOW + "You cast " + ChatColor.GOLD + "Quicksand" + ChatColor.YELLOW + "!");
+        hitBlock.getWorld().playSound(hitBlock.getLocation(), Sound.BLOCK_SAND_BREAK, 1.5f, 0.8f);
+        
+        int radius = 1 + level / 5;
+        double radiusSq = radius * radius;
+        Location centerLoc = hitBlock.getLocation();
+        
+        List<Block> changedBlocks = new ArrayList<>();
+        java.util.Map<Block, Material> originalTypes = new java.util.HashMap<>();
+        
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -radius; z <= radius; z++) {
+                    if (x*x + z*z <= radiusSq) {
+                        Block b = hitBlock.getRelative(x, y, z);
+                        if (b.getType().isSolid() && !isBlacklisted(b.getType()) && b.getType() != Material.SAND) {
+                            originalTypes.put(b, b.getType());
+                            b.setType(Material.SAND);
+                            changedBlocks.add(b);
+                            b.getWorld().spawnParticle(Particle.BLOCK, b.getLocation().add(0.5, 1.0, 0.5), 3, 0.2, 0.2, 0.2, 0.05, Material.SAND.createBlockData());
+                        }
+                    }
+                }
+            }
+        }
+        
+        for (Entity entity : hitBlock.getWorld().getNearbyEntities(centerLoc, radius + 1, 3, radius + 1)) {
+            if (entity instanceof LivingEntity target && target != player && isEnemy(target)) {
+                target.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS, 100, 2));
+                target.getWorld().spawnParticle(Particle.FALLING_DUST, target.getLocation().add(0, 1, 0), 8, 0.2, 0.2, 0.2, 0, Material.SAND.createBlockData());
+            }
+        }
+        
+        if (!changedBlocks.isEmpty()) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (Block b : changedBlocks) {
+                    if (b.getWorld().isChunkLoaded(b.getX() >> 4, b.getZ() >> 4)) {
+                        Material orig = originalTypes.get(b);
+                        if (orig != null && b.getType() == Material.SAND) {
+                            b.setType(orig);
+                        }
+                    }
+                }
+            }, 200L);
+        }
+    }
+
+    private void executeSpearKnight(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Spear Knight");
+        if (level == 0) return;
+        double cost = 30.0;
+        if (!checkMana(player, profile, cost, "Spear Knight")) return;
+        
+        org.bukkit.entity.Entity vehicle = player.getVehicle();
+        if (!(vehicle instanceof org.bukkit.entity.AbstractHorse horse)) {
+            player.sendMessage(ChatColor.RED + "You must be riding a horse to use Spear Knight!");
+            return;
+        }
+        
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.GREEN + "You used " + ChatColor.DARK_GREEN + "Spear Knight" + ChatColor.GREEN + "!");
+        player.playSound(player.getLocation(), Sound.ENTITY_HORSE_ANGRY, 1f, 1f);
+        player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_RIPTIDE_1, 1f, 1.2f);
+        
+        org.bukkit.util.Vector direction = player.getLocation().getDirection().setY(0.15).normalize().multiply(1.8);
+        horse.setVelocity(direction);
+        
+        horse.setMetadata("spear_knight_protect", new FixedMetadataValue(plugin, true));
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (horse.isValid()) {
+                horse.removeMetadata("spear_knight_protect", plugin);
+            }
+        }, 15L);
+        
+        double damage = 10.0 + level * 2.0;
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int ticks = 0;
+            final java.util.Set<java.util.UUID> trampled = new java.util.HashSet<>();
+            @Override
+            public void run() {
+                if (!player.isOnline() || !horse.isValid() || ticks >= 15) {
+                    cancel();
+                    return;
+                }
+                ticks++;
+                
+                horse.getWorld().spawnParticle(Particle.CRIT, horse.getLocation().add(0, 0.5, 0), 5, 0.5, 0.2, 0.5, 0.05);
+                
+                for (Entity entity : horse.getNearbyEntities(1.5, 1.5, 1.5)) {
+                    if (entity instanceof LivingEntity target && target != player && target != horse && !trampled.contains(target.getUniqueId()) && isEnemy(target)) {
+                        trampled.add(target.getUniqueId());
+                        target.damage(damage, player);
+                        
+                        org.bukkit.util.Vector push = target.getLocation().toVector().subtract(horse.getLocation().toVector());
+                        push.setY(0);
+                        if (push.lengthSquared() > 0) {
+                            push.normalize();
+                        } else {
+                            push = horse.getLocation().getDirection().setY(0).normalize();
+                        }
+                        push.multiply(1.2).setY(0.35);
+                        target.setVelocity(push);
+                        
+                        target.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, target.getLocation().add(0, 1, 0), 5);
+                        target.getWorld().playSound(target.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 0.8f);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    private void executeAssassination(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Assassination");
+        if (level == 0) return;
+        double cost = 30.0;
+        if (!checkMana(player, profile, cost, "Assassination")) return;
+        
+        double range = 8.0 + (level - 1) * 0.2;
+        LivingEntity target = null;
+        double closestDist = Double.MAX_VALUE;
+        
+        for (Entity e : player.getNearbyEntities(range, range, range)) {
+            if (e instanceof LivingEntity candidate && candidate != player && isEnemy(candidate)) {
+                double dist = player.getLocation().distance(candidate.getLocation());
+                if (dist < closestDist && dist <= range) {
+                    closestDist = dist;
+                    target = candidate;
+                }
+            }
+        }
+        
+        if (target == null) {
+            player.sendMessage(ChatColor.GRAY + "No target found in range for Assassination.");
+            return;
+        }
+        
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.DARK_RED + "★ Assassination: Teleporting behind target!");
+        
+        org.bukkit.util.Vector targetDir = target.getLocation().getDirection().setY(0).normalize();
+        Location teleportLoc = target.getLocation().subtract(targetDir.multiply(1.2));
+        teleportLoc.setDirection(targetDir); 
+        
+        player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 15, 0.5, 1.0, 0.5, 0.1);
+        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1.2f);
+        
+        player.teleport(teleportLoc);
+        
+        player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 15, 0.5, 1.0, 0.5, 0.1);
+        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1.5f);
+        
+        double baseDamage = 5.0;
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        double weaponDamage = getWeaponBaseDamage(weapon.getType());
+        double totalBase = baseDamage + weaponDamage;
+        
+        int critDamageLvl = Math.min(100, profile.getSkillLevel("Critical Damage"));
+        double critMultiplier = 1.5 + critDamageLvl * 0.01;
+        double finalDamage = totalBase * critMultiplier;
+        
+        target.damage(finalDamage, player);
+        target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.1);
+        target.getWorld().playSound(target.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.2f, 0.9f);
+    }
+    
+    private double getWeaponBaseDamage(Material material) {
+        String name = material.name();
+        if (name.endsWith("_SPEAR")) {
+            if (name.contains("WOODEN") || name.contains("GOLDEN")) return 5.0;
+            if (name.contains("STONE")) return 6.0;
+            if (name.contains("IRON")) return 7.0;
+            if (name.contains("DIAMOND")) return 8.0;
+            if (name.contains("NETHERITE")) return 9.0;
+            return 6.0;
+        }
+        switch (material) {
+            case WOODEN_SWORD: case GOLDEN_SWORD: return 4.0;
+            case STONE_SWORD: return 5.0;
+            case IRON_SWORD: return 6.0;
+            case DIAMOND_SWORD: return 7.0;
+            case NETHERITE_SWORD: return 8.0;
+            case WOODEN_AXE: case GOLDEN_AXE: return 7.0;
+            case STONE_AXE: return 9.0;
+            case IRON_AXE: return 9.0;
+            case DIAMOND_AXE: return 9.0;
+            case NETHERITE_AXE: return 10.0;
+            default: return 0.0;
+        }
+    }
+
+    private void executePiercingBolt(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Piercing Bolt");
+        if (level == 0) return;
+        double cost = 25.0;
+        if (!checkMana(player, profile, cost, "Piercing Bolt")) return;
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.GREEN + "You used " + ChatColor.DARK_GREEN + "Piercing Bolt" + ChatColor.GREEN + "!");
+        player.playSound(player.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1f, 0.5f);
+        
+        org.bukkit.entity.Arrow arrow = player.launchProjectile(org.bukkit.entity.Arrow.class);
+        arrow.setCustomName("Piercing Bolt");
+        arrow.setMetadata("piercing_bolt_lvl", new FixedMetadataValue(plugin, level));
+        arrow.setCritical(true);
+        arrow.setPierceLevel(5);
+        arrow.setVelocity(player.getLocation().getDirection().multiply(2.2));
+    }
+
+    private void executeRaiseUndead(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Raise Undead");
+        if (level == 0) return;
+        double cost = 35.0;
+        if (!checkMana(player, profile, cost, "Raise Undead")) return;
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.DARK_PURPLE + "You used " + ChatColor.GOLD + "Raise Undead" + ChatColor.DARK_PURPLE + "!");
+        player.playSound(player.getLocation(), Sound.ENTITY_WITHER_SKELETON_AMBIENT, 1f, 1.5f);
+        
+        int count = 1 + level / 10;
+        Location spawnLoc = player.getLocation();
+        
+        for (int i = 0; i < count; i++) {
+            double angle = (Math.PI * 2 / count) * i;
+            Location loc = spawnLoc.clone().add(Math.cos(angle) * 1.5, 0, Math.sin(angle) * 1.5);
+            loc.setY(player.getWorld().getHighestBlockYAt(loc) + 1);
+            
+            org.bukkit.entity.Skeleton skeleton = player.getWorld().spawn(loc, org.bukkit.entity.Skeleton.class);
+            skeleton.setCustomName(ChatColor.GOLD + player.getName() + "'s Undead Cohort");
+            skeleton.setCustomNameVisible(true);
+            skeleton.setMetadata("summoner_uuid", new FixedMetadataValue(plugin, player.getUniqueId().toString()));
+            
+            if (skeleton.getEquipment() != null) {
+                skeleton.getEquipment().setHelmet(new ItemStack(Material.LEATHER_HELMET));
+                skeleton.getEquipment().setItemInMainHand(new ItemStack(Material.STONE_SWORD));
+            }
+            
+            skeleton.getWorld().spawnParticle(Particle.SOUL, skeleton.getLocation().add(0, 1, 0), 10, 0.2, 0.5, 0.2, 0.1);
+            
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (skeleton.isValid()) {
+                    skeleton.getWorld().spawnParticle(Particle.SMOKE, skeleton.getLocation().add(0, 1, 0), 10, 0.2, 0.5, 0.2, 0.1);
+                    skeleton.remove();
+                }
+            }, 600L);
+        }
+    }
+
+    private void executeSoulDrain(Player player, PlayerProfile profile) {
+        int level = profile.getSkillLevel("Soul Drain");
+        if (level == 0) return;
+        double cost = 20.0;
+        if (!checkMana(player, profile, cost, "Soul Drain")) return;
+        profile.setCurrentMana(profile.getCurrentMana() - cost);
+        player.sendMessage(ChatColor.DARK_PURPLE + "You used " + ChatColor.LIGHT_PURPLE + "Soul Drain" + ChatColor.DARK_PURPLE + "!");
+        
+        double tickValue = (2.0 + level * 0.5) / 2.0;
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int runs = 0;
+            @Override
+            public void run() {
+                if (!player.isOnline() || player.isDead() || runs >= 6) {
+                    cancel();
+                    return;
+                }
+                runs++;
+                
+                List<LivingEntity> skeletons = new ArrayList<>();
+                for (Entity entity : player.getNearbyEntities(15, 15, 15)) {
+                    if (entity instanceof org.bukkit.entity.Skeleton skeleton && skeleton.hasMetadata("summoner_uuid")) {
+                        String ownerUuid = skeleton.getMetadata("summoner_uuid").get(0).asString();
+                        if (player.getUniqueId().toString().equals(ownerUuid)) {
+                            skeletons.add(skeleton);
+                        }
+                    }
+                }
+                
+                if (skeletons.isEmpty()) {
+                    return;
+                }
+                
+                player.playSound(player.getLocation(), Sound.BLOCK_CONDUIT_AMBIENT, 0.8f, 1.5f);
+                
+                for (LivingEntity skeleton : skeletons) {
+                    drawLaserLine(skeleton.getLocation().add(0, 1, 0), player.getLocation().add(0, 1, 0));
+                    skeleton.damage(tickValue);
+                    player.setHealth(Math.min(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), player.getHealth() + tickValue));
+                    player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1.5, 0), 1, 0.1, 0.1, 0.1, 0);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 10L);
+    }
+    
+    private void drawLaserLine(Location from, Location to) {
+        double dist = from.distance(to);
+        org.bukkit.util.Vector dir = to.toVector().subtract(from.toVector()).normalize();
+        for (double d = 0; d < dist; d += 0.5) {
+            Location p = from.clone().add(dir.clone().multiply(d));
+            p.getWorld().spawnParticle(Particle.DUST, p, 1, 0, 0, 0, 0, new Particle.DustOptions(org.bukkit.Color.RED, 0.8f));
+        }
+    }
+
+    private void startPassiveTasks() {
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+                    if (profile == null) continue;
+                    int level = profile.getSkillLevel("Deathly Rejuvenation");
+                    if (level > 0) {
+                        double maxHp = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                        double regen = level * 0.02;
+                        player.setHealth(Math.min(maxHp, player.getHealth() + regen));
+                        if (player.getHealth() < maxHp) {
+                            player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation().add(0, 0.1, 0), 1, 0.2, 0.2, 0.2, 0.01);
+                        }
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 40L, 40L);
+
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+                    if (profile == null) continue;
+                    int level = profile.getSkillLevel("Fertilizer");
+                    if (level > 0) {
+                        double growthChance = level * 0.01;
+                        if (Math.random() < growthChance) {
+                            double radius = 5.0;
+                            int r = 5;
+                            Location center = player.getLocation();
+                            List<Block> cropBlocks = new ArrayList<>();
+                            for (int x = -r; x <= r; x++) {
+                                for (int y = -2; y <= 2; y++) {
+                                    for (int z = -r; z <= r; z++) {
+                                        if (x*x + z*z <= radius*radius) {
+                                            Block b = center.getBlock().getRelative(x, y, z);
+                                            if (isCropBlock(b.getType())) {
+                                                cropBlocks.add(b);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (!cropBlocks.isEmpty()) {
+                                Block chosen = cropBlocks.get((int) (Math.random() * cropBlocks.size()));
+                                org.bukkit.block.data.BlockData data = chosen.getBlockData();
+                                if (data instanceof Ageable ageable) {
+                                    if (ageable.getAge() < ageable.getMaximumAge()) {
+                                        ageable.setAge(ageable.getAge() + 1);
+                                        chosen.setBlockData(ageable);
+                                        chosen.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, chosen.getLocation().add(0.5, 0.5, 0.5), 5, 0.2, 0.2, 0.2, 0.05);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 80L, 80L);
+    }
+
+    @EventHandler
+    public void onHorseDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (event.getEntity().hasMetadata("spear_knight_protect")) {
+            event.setCancelled(true);
+        }
+    }
+
     private void executeBoomerangThrow(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Boomerang Throw");
         if (level == 0) return;
 
         double cost = 20.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Boomerang Throw!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Boomerang Throw")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.GOLD + "You used " + ChatColor.YELLOW + "Boomerang Throw" + ChatColor.GOLD + "!");
@@ -1066,10 +1552,7 @@ public class SkillManager implements Listener {
         if (level == 0) return;
 
         double cost = 20.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Laser DOT!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Laser DOT")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.DARK_PURPLE + "You used " + ChatColor.LIGHT_PURPLE + "Laser DOT" + ChatColor.DARK_PURPLE + "!");
@@ -1120,10 +1603,7 @@ public class SkillManager implements Listener {
         if (level == 0) return;
 
         double cost = 25.0;
-        if (profile.getCurrentMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana for Thunder Wave!");
-            return;
-        }
+        if (!checkMana(player, profile, cost, "Thunder Wave")) return;
 
         profile.setCurrentMana(profile.getCurrentMana() - cost);
         player.sendMessage(ChatColor.DARK_RED + "You used " + ChatColor.GOLD + "Thunder Wave" + ChatColor.DARK_RED + "!");

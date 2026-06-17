@@ -74,6 +74,7 @@ public class ClassManager {
         classes.add(new HrpClass("Paladin", "Pure active skill tank/healer (Aegis, Holy Nova).", 60, 0, 60, 60, 200, Material.SHIELD, true));
         classes.add(new HrpClass("Landlord", "World shaping (Transmutation).", 60, 60, 60, 0, 200, Material.GRASS_BLOCK, true));
         classes.add(new HrpClass("Alchemist", "Output doubling (Potions, Enchanting).", 0, 60, 60, 60, 200, Material.BREWING_STAND, true));
+        classes.add(new HrpClass("Necromancer", "Summon friendly skeleton cohorts and channel their lifeforce.", 0, 60, 60, 60, 200, Material.BONE, true));
         
         // Admin
         classes.add(new HrpClass("Admin Class", "Unlocked by mastering everything.", 100, 100, 100, 100, 400, Material.COMMAND_BLOCK, true));
@@ -84,20 +85,28 @@ public class ClassManager {
         activeSkills.add(new ActiveSkill("Cleave", "Warrior", "Sword in hand, press [F]", 30, "Sweep attack dealing AoE damage."));
         activeSkills.add(new ActiveSkill("Boomerang Throw", "Warrior", "Axe in hand, press [F]", 20, "Throws your axe like a boomerang, hitting enemies in its path."));
         activeSkills.add(new ActiveSkill("Thunder Wave", "Warrior", "Mace in hand, press [F]", 25, "Calls lightning on yourself, pushing back and damaging nearby enemies."));
+        activeSkills.add(new ActiveSkill("Spear Knight", "Warrior", "Spear in hand, press [F] (While mounted)", 30, "Charges forward on your horse, trampling and damaging enemies."));
+        activeSkills.add(new ActiveSkill("Assassination", "Warrior", "Sword in hand, Sneak + [F]", 30, "Teleports behind the closest mob and performs a critical strike."));
+        activeSkills.add(new ActiveSkill("Laser DOT", "Warrior", "Trident in hand, press [F]", 20, "Channels a laser beam dealing damage over time."));
         passiveSkills.add(new PassiveSkill("Heavy Strike", "Warrior", "+1% melee damage per level"));
         passiveSkills.add(new PassiveSkill("Swift Strike", "Warrior", "+1% melee speed per level"));
 
         // Ranger
         activeSkills.add(new ActiveSkill("Quick Shot", "Ranger", "Bow in hand, press [F]", 20, "Fires a rapid sequence of arrows."));
-        activeSkills.add(new ActiveSkill("Laser DOT", "Ranger", "Trident in hand, press [F]", 20, "Channels a laser beam dealing damage over time."));
+        activeSkills.add(new ActiveSkill("Piercing Bolt", "Ranger", "Crossbow in hand, press [F]", 25, "Fires a high-velocity piercing bolt in a straight line."));
         passiveSkills.add(new PassiveSkill("Precision", "Ranger", "+1% critical strike chance per level"));
         passiveSkills.add(new PassiveSkill("Critical Damage", "Ranger", "+1% critical strike damage per level"));
+        passiveSkills.add(new PassiveSkill("Recycle Bolt", "Ranger", "+1% chance per level to not consume crossbow arrows"));
 
         // Wizard
-        activeSkills.add(new ActiveSkill("Arcane Missile", "Wizard", "Stick in hand, press [F]", 15, "Shoots a magical missile dealing damage."));
+        activeSkills.add(new ActiveSkill("Rock Blast", "Wizard", "Stick in hand, press [F]", 15, "Shoots a high-impact rock projectile."));
+        activeSkills.add(new ActiveSkill("Quicksand", "Wizard", "Stick in hand, Sneak + [F]", 25, "Transforms blocks into sand and slows targets in the area."));
         activeSkills.add(new ActiveSkill("Fireball", "Wizard", "Blaze Rod in hand, press [F]", 25, "Shoots an explosive fireball."));
-        activeSkills.add(new ActiveSkill("Chain Lightning", "Wizard", "Blaze Rod in hand, Sneak + [F]", 20, "Lightning jumps from target to target, dealing damage."));
-        activeSkills.add(new ActiveSkill("Water Wave", "Wizard", "Stick in hand, Sneak + [F]", 30, "Creates a water barrier, pushing back and damaging enemies."));
+        activeSkills.add(new ActiveSkill("Fire Rain", "Wizard", "Blaze Rod in hand, Sneak + [F]", 30, "Channels falling fire around the player, dealing splash damage."));
+        activeSkills.add(new ActiveSkill("Water Cannon", "Wizard", "Tropical Fish in hand, press [F]", 20, "Projects water forward, pushing targets and preventing jumping."));
+        activeSkills.add(new ActiveSkill("Water Wave", "Wizard", "Tropical Fish in hand, Sneak + [F]", 30, "Creates a water barrier, pushing back and damaging enemies."));
+        activeSkills.add(new ActiveSkill("Wind Blast", "Wizard", "Breeze Rod in hand, press [F]", 20, "Launches an explosive wind charge projectile."));
+        activeSkills.add(new ActiveSkill("Gale Force", "Wizard", "Breeze Rod in hand, Sneak + [F]", 25, "Launches the player upward and knocks back surrounding mobs."));
         passiveSkills.add(new PassiveSkill("Spell Echo", "Wizard", "+1% mana regeneration rate per level"));
 
         // Miner
@@ -109,6 +118,7 @@ public class ClassManager {
         // Farmer
         activeSkills.add(new ActiveSkill("Rejuvenation", "Farmer", "Hoe in hand, Sneak + [F]", 25, "AoE apply bonemeal if near crops, otherwise heals."));
         passiveSkills.add(new PassiveSkill("Bountiful Harvest", "Farmer", "+1% double crop chance per level"));
+        passiveSkills.add(new PassiveSkill("Fertilizer", "Farmer", "+1% crop tick speed chance per level"));
 
         // Engineer
         passiveSkills.add(new PassiveSkill("Efficiency", "Engineer", "Applies additional Efficiency effect on tools used (+1% per level)"));
@@ -120,6 +130,7 @@ public class ClassManager {
         activeSkills.add(new ActiveSkill("Aegis", "Paladin", "Shield in hand, Sneak + [F] (or Block + Shift+F if off-hand)", 40, "Invulnerability for a duration."));
         activeSkills.add(new ActiveSkill("Holy Nova", "Paladin", "Shield in hand, press [F] (or Block + F if off-hand)", 35, "AoE healing for allies and damage to monsters."));
         passiveSkills.add(new PassiveSkill("Guardian", "Paladin", "+1 heart max health per level"));
+        passiveSkills.add(new PassiveSkill("Iron Resolve", "Paladin", "+1% knockback resistance per level"));
 
         // Landlord
         activeSkills.add(new ActiveSkill("Transmutation", "Landlord", "Sneak + [F] on target block", 30, "Converts target block and nearby connected blocks."));
@@ -128,6 +139,11 @@ public class ClassManager {
         // Alchemist
         passiveSkills.add(new PassiveSkill("Catalyst", "Alchemist", "+1% potion duration per level"));
         passiveSkills.add(new PassiveSkill("Master of the Craft", "Alchemist", "Doubles enchants and potions created"));
+
+        // Necromancer
+        activeSkills.add(new ActiveSkill("Raise Undead", "Necromancer", "Bone in hand, Sneak + [F]", 35, "Summons friendly skeleton cohorts."));
+        activeSkills.add(new ActiveSkill("Soul Drain", "Necromancer", "Bone in hand, press [F]", 30, "Channels health from your active skeletons."));
+        passiveSkills.add(new PassiveSkill("Deathly Rejuvenation", "Necromancer", "+0.02 HP/s health regeneration per level"));
     }
 
     public List<ActiveSkill> getUnlockedActiveSkills(PlayerProfile profile) {
