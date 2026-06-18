@@ -196,6 +196,7 @@ public class ClassManager {
         PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
+        boolean unlockedAny = false;
         for (HrpClass hrpClass : classes) {
             // Only check classes they don't already have
             if (!profile.getUnlockedClasses().contains(hrpClass.getName())) {
@@ -203,8 +204,18 @@ public class ClassManager {
                     profile.addUnlockedClass(hrpClass.getName());
                     player.sendMessage(ChatColor.GOLD + "★ " + ChatColor.YELLOW + "You have unlocked the " + ChatColor.GOLD + hrpClass.getName() + ChatColor.YELLOW + " class!");
                     player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+                    unlockedAny = true;
                 }
             }
+        }
+
+        if (unlockedAny) {
+            plugin.getDatabaseManager().saveProfile(profile);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                if (plugin.getStatisticsGenerator() != null) {
+                    plugin.getStatisticsGenerator().generateReport();
+                }
+            });
         }
     }
 }

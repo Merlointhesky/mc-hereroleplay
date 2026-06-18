@@ -168,7 +168,12 @@ public class ClassSkillsGUI implements CustomGUI {
             case "Thunder Wave": return Material.MACE;
             case "Laser DOT": return Material.TRIDENT;
             case "Water Wave": return Material.WATER_BUCKET;
-            case "Spear Knight": return Material.TRIDENT;
+            case "Spear Knight":
+                try {
+                    return Material.valueOf("IRON_SPEAR");
+                } catch (IllegalArgumentException e) {
+                    return Material.TRIDENT;
+                }
             case "Assassination": return Material.ENDER_PEARL;
             case "Piercing Bolt": return Material.SPECTRAL_ARROW;
             case "Recycle Bolt": return Material.ARROW;

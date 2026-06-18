@@ -24,6 +24,7 @@ public class ClassDirectoryGUI implements CustomGUI {
         this.player = player;
         this.inventory = Bukkit.createInventory(this, 54, "§8Class Directory");
         
+        plugin.getClassManager().checkUnlocks(player);
         setupItems();
     }
 

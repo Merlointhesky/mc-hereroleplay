@@ -40,6 +40,7 @@ public class PlayerConnectionListener implements Listener {
             plugin.getDatabaseManager().getProfileCache().put(player.getUniqueId(), profile);
         }
         plugin.getAttributeManager().applyAttributes(player);
+        plugin.getClassManager().checkUnlocks(player);
     }
 
     @EventHandler

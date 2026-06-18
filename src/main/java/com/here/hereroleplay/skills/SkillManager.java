@@ -700,6 +700,37 @@ public class SkillManager implements Listener {
                         target.damage(damage);
                     }
                 }
+
+                Block hitBlock = event.getHitBlock();
+                if (hitBlock == null && event.getHitEntity() != null) {
+                    hitBlock = event.getHitEntity().getLocation().getBlock();
+                }
+                if (hitBlock != null) {
+                    double radius = 1.0 + (level * 0.01);
+                    double radiusSq = radius * radius;
+                    Location center = hitBlock.getLocation().add(0.5, 0.5, 0.5);
+                    int r = (int) Math.ceil(radius);
+                    
+                    List<Block> toFall = new ArrayList<>();
+                    for (int x = -r; x <= r; x++) {
+                        for (int y = -r; y <= r; y++) {
+                            for (int z = -r; z <= r; z++) {
+                                Block b = hitBlock.getRelative(x, y, z);
+                                if (b.getType().isSolid() && !isBlacklisted(b.getType())) {
+                                    if (b.getLocation().add(0.5, 0.5, 0.5).distanceSquared(center) <= radiusSq) {
+                                        toFall.add(b);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    for (Block b : toFall) {
+                        org.bukkit.block.data.BlockData data = b.getBlockData();
+                        b.setType(Material.AIR);
+                        b.getWorld().spawnFallingBlock(b.getLocation().add(0.5, 0.0, 0.5), data);
+                    }
+                }
             }
         } else if (event.getEntity() instanceof org.bukkit.entity.SmallFireball fireball) {
             if (fireball.hasMetadata("fireball_lvl")) {
@@ -1325,22 +1356,109 @@ public class SkillManager implements Listener {
         int count = 1 + level / 10;
         Location spawnLoc = player.getLocation();
         
+        String[] randomNames = {
+            "Robert", "Alice", "Charles", "Arthur", "James", "Henry", "Thomas", "Mary", "John", "David",
+            "Sarah", "William", "George", "Edward", "Elizabeth", "Richard", "Joseph", "Frank", "Albert",
+            "Walter", "Harold", "Paul", "Ruth", "Helen", "Dorothy", "Margaret", "Donald", "Peter", "Steve",
+            "Alex", "Bob", "Gary", "Brian", "Larry", "Kevin", "Mark", "Fred", "Harry", "Jack", "Garry",
+            "Barry", "Larry", "Bruce", "Diana", "Clark", "Tony", "Natasha", "Clint"
+        };
+        java.util.Random random = new java.util.Random();
+        
         for (int i = 0; i < count; i++) {
             double angle = (Math.PI * 2 / count) * i;
             Location loc = spawnLoc.clone().add(Math.cos(angle) * 1.5, 0, Math.sin(angle) * 1.5);
             loc.setY(player.getWorld().getHighestBlockYAt(loc) + 1);
             
             org.bukkit.entity.Skeleton skeleton = player.getWorld().spawn(loc, org.bukkit.entity.Skeleton.class);
-            skeleton.setCustomName(ChatColor.GOLD + player.getName() + "'s Undead Cohort");
+            String randomName = randomNames[random.nextInt(randomNames.length)];
+            skeleton.setCustomName(ChatColor.GOLD + "Ex-" + randomName);
             skeleton.setCustomNameVisible(true);
             skeleton.setMetadata("summoner_uuid", new FixedMetadataValue(plugin, player.getUniqueId().toString()));
             
             if (skeleton.getEquipment() != null) {
                 skeleton.getEquipment().setHelmet(new ItemStack(Material.LEATHER_HELMET));
-                skeleton.getEquipment().setItemInMainHand(new ItemStack(Material.STONE_SWORD));
+                
+                Material[] weapons = {
+                    Material.STONE_SWORD,
+                    Material.IRON_SWORD,
+                    Material.BOW,
+                    Material.CROSSBOW,
+                    Material.STONE_AXE,
+                    Material.IRON_AXE,
+                    Material.MACE
+                };
+                Material weapon = weapons[random.nextInt(weapons.length)];
+                skeleton.getEquipment().setItemInMainHand(new ItemStack(weapon));
+                
+                if (weapon != Material.BOW && weapon != Material.CROSSBOW && random.nextBoolean()) {
+                    skeleton.getEquipment().setItemInOffHand(new ItemStack(Material.SHIELD));
+                }
             }
             
             skeleton.getWorld().spawnParticle(Particle.SOUL, skeleton.getLocation().add(0, 1, 0), 10, 0.2, 0.5, 0.2, 0.1);
+            
+            // Task to follow the player and target enemies
+            new org.bukkit.scheduler.BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (!skeleton.isValid() || !player.isOnline() || player.isDead()) {
+                        cancel();
+                        return;
+                    }
+                    
+                    double distToPlayerSq = skeleton.getLocation().distanceSquared(player.getLocation());
+                    
+                    // 1. Teleport if extremely far
+                    if (distToPlayerSq > 20.0 * 20.0) {
+                        skeleton.teleport(player.getLocation());
+                        skeleton.getWorld().spawnParticle(Particle.PORTAL, skeleton.getLocation(), 10, 0.2, 0.5, 0.2, 0.1);
+                        skeleton.setTarget(null);
+                        return;
+                    }
+                    
+                    // 2. Clear target if too far from player
+                    LivingEntity currentTarget = skeleton.getTarget();
+                    if (currentTarget != null && (!currentTarget.isValid() || currentTarget.isDead() || distToPlayerSq > 16.0 * 16.0)) {
+                        skeleton.setTarget(null);
+                        currentTarget = null;
+                    }
+                    
+                    // 3. Scan for target if we don't have one
+                    if (currentTarget == null) {
+                        Material mainHand = skeleton.getEquipment() != null ? skeleton.getEquipment().getItemInMainHand().getType() : Material.AIR;
+                        boolean isRanged = mainHand == Material.BOW || mainHand == Material.CROSSBOW;
+                        double scanRange = isRanged ? 25.0 : 12.0;
+                        LivingEntity bestTarget = null;
+                        double bestDistSq = scanRange * scanRange;
+                        
+                        for (Entity entity : skeleton.getNearbyEntities(scanRange, scanRange, scanRange)) {
+                            if (entity instanceof org.bukkit.entity.Monster monster && monster.isValid() && !monster.isDead()) {
+                                if (monster.hasMetadata("summoner_uuid")) {
+                                    continue;
+                                }
+                                double distSq = skeleton.getLocation().distanceSquared(monster.getLocation());
+                                if (distSq < bestDistSq) {
+                                    bestDistSq = distSq;
+                                    bestTarget = monster;
+                                }
+                            }
+                        }
+                        
+                        if (bestTarget != null) {
+                            skeleton.setTarget(bestTarget);
+                            currentTarget = bestTarget;
+                        }
+                    }
+                    
+                    // 4. If we have no target, follow player
+                    if (currentTarget == null) {
+                        if (distToPlayerSq > 4.0 * 4.0) {
+                            skeleton.getPathfinder().moveTo(player, 1.25);
+                        }
+                    }
+                }
+            }.runTaskTimer(plugin, 0L, 20L);
             
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 if (skeleton.isValid()) {
@@ -1351,9 +1469,85 @@ public class SkillManager implements Listener {
         }
     }
 
+    private boolean isUndead(LivingEntity living) {
+        if (living == null) return false;
+        if (living.hasMetadata("summoner_uuid")) {
+            return true;
+        }
+        try {
+            if (living.getCategory() == org.bukkit.entity.EntityCategory.UNDEAD) {
+                return true;
+            }
+        } catch (Throwable ignored) {}
+        
+        org.bukkit.entity.EntityType type = living.getType();
+        if (type == org.bukkit.entity.EntityType.SKELETON ||
+            type == org.bukkit.entity.EntityType.WITHER_SKELETON ||
+            type == org.bukkit.entity.EntityType.STRAY ||
+            type == org.bukkit.entity.EntityType.ZOMBIE ||
+            type == org.bukkit.entity.EntityType.ZOMBIE_VILLAGER ||
+            type == org.bukkit.entity.EntityType.DROWNED ||
+            type == org.bukkit.entity.EntityType.HUSK ||
+            type == org.bukkit.entity.EntityType.ZOMBIFIED_PIGLIN ||
+            type == org.bukkit.entity.EntityType.ZOGLIN ||
+            type == org.bukkit.entity.EntityType.PHANTOM ||
+            type == org.bukkit.entity.EntityType.WITHER ||
+            type == org.bukkit.entity.EntityType.SKELETON_HORSE ||
+            type == org.bukkit.entity.EntityType.ZOMBIE_HORSE ||
+            type == org.bukkit.entity.EntityType.GIANT ||
+            type.name().equals("BOGGED")) {
+            return true;
+        }
+        
+        return living instanceof org.bukkit.entity.AbstractSkeleton || 
+               living instanceof org.bukkit.entity.Zombie || 
+               living instanceof org.bukkit.entity.Phantom || 
+               living instanceof org.bukkit.entity.Wither;
+    }
+
+    private List<LivingEntity> findSoulDrainTargets(Player player) {
+        List<LivingEntity> enemies = new ArrayList<>();
+        List<LivingEntity> summons = new ArrayList<>();
+        
+        for (Entity entity : player.getNearbyEntities(15, 15, 15)) {
+            if (entity instanceof LivingEntity living && living != player) {
+                if (isUndead(living)) {
+                    if (living.hasMetadata("summoner_uuid")) {
+                        summons.add(living);
+                    } else {
+                        enemies.add(living);
+                    }
+                }
+            }
+        }
+        
+        return !enemies.isEmpty() ? enemies : summons;
+    }
+
     private void executeSoulDrain(Player player, PlayerProfile profile) {
         int level = profile.getSkillLevel("Soul Drain");
         if (level == 0) return;
+
+        List<LivingEntity> targets = findSoulDrainTargets(player);
+
+        if (targets.isEmpty()) {
+            player.sendMessage(ChatColor.RED + "There are no undead mobs nearby to drain!");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            
+            // Debug console log to see nearby mobs and status
+            StringBuilder sb = new StringBuilder();
+            for (Entity entity : player.getNearbyEntities(15, 15, 15)) {
+                if (entity instanceof LivingEntity living) {
+                    sb.append(living.getType().name())
+                      .append(" (isUndead=").append(isUndead(living))
+                      .append(", summoner=").append(living.hasMetadata("summoner_uuid"))
+                      .append("), ");
+                }
+            }
+            plugin.getLogger().info("Soul Drain failed for " + player.getName() + ". Nearby: " + sb.toString());
+            return;
+        }
+
         double cost = 20.0;
         if (!checkMana(player, profile, cost, "Soul Drain")) return;
         profile.setCurrentMana(profile.getCurrentMana() - cost);
@@ -1371,25 +1565,26 @@ public class SkillManager implements Listener {
                 }
                 runs++;
                 
-                List<LivingEntity> skeletons = new ArrayList<>();
-                for (Entity entity : player.getNearbyEntities(15, 15, 15)) {
-                    if (entity instanceof org.bukkit.entity.Skeleton skeleton && skeleton.hasMetadata("summoner_uuid")) {
-                        String ownerUuid = skeleton.getMetadata("summoner_uuid").get(0).asString();
-                        if (player.getUniqueId().toString().equals(ownerUuid)) {
-                            skeletons.add(skeleton);
-                        }
-                    }
-                }
+                List<LivingEntity> currentTargets = findSoulDrainTargets(player);
                 
-                if (skeletons.isEmpty()) {
+                if (currentTargets.isEmpty()) {
                     return;
                 }
                 
                 player.playSound(player.getLocation(), Sound.BLOCK_CONDUIT_AMBIENT, 0.8f, 1.5f);
                 
-                for (LivingEntity skeleton : skeletons) {
-                    drawLaserLine(skeleton.getLocation().add(0, 1, 0), player.getLocation().add(0, 1, 0));
-                    skeleton.damage(tickValue);
+                for (LivingEntity target : currentTargets) {
+                    drawLaserLine(target.getLocation().add(0, 1, 0), player.getLocation().add(0, 1, 0));
+                    
+                    if (target.hasMetadata("summoner_uuid")) {
+                        // Directly subtract health to bypass friendly fire and event cancellation plugins
+                        double newHealth = Math.max(0.0, target.getHealth() - tickValue);
+                        target.setHealth(newHealth);
+                        target.playEffect(org.bukkit.EntityEffect.HURT);
+                    } else {
+                        target.damage(tickValue);
+                    }
+                    
                     player.setHealth(Math.min(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), player.getHealth() + tickValue));
                     player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1.5, 0), 1, 0.1, 0.1, 0.1, 0);
                 }
