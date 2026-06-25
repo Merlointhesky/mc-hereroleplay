@@ -22,6 +22,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
@@ -31,6 +33,7 @@ import java.util.List;
 public class SkillManager implements Listener {
 
     private final HereRolePlay plugin;
+    private final java.util.Map<java.util.UUID, Long> lastDamageTime = new java.util.concurrent.ConcurrentHashMap<>();
 
     public SkillManager(HereRolePlay plugin) {
         this.plugin = plugin;
@@ -1663,6 +1666,15 @@ public class SkillManager implements Listener {
                 }
             }
         }.runTaskTimer(plugin, 80L, 80L);
+
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    updateMonkState(player);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 2L);
     }
 
     @EventHandler
@@ -1827,5 +1839,125 @@ public class SkillManager implements Listener {
         }
 
         player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation().add(0, 1, 0), 3, 0.5, 0.5, 0.5, 0.1);
+    }
+
+    private boolean isSelectingEmptySlot(Player player) {
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        return mainHand == null || mainHand.getType() == Material.AIR;
+    }
+
+    private void updateMonkState(Player player) {
+        PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+        if (profile == null) return;
+
+        boolean isMonk = profile.getUnlockedClasses().contains("Monk") || profile.getUnlockedClasses().contains("Admin Class");
+        if (!isMonk) return;
+
+        boolean selectingEmpty = isSelectingEmptySlot(player);
+        
+        // Double Jump allow flight check
+        int doubleJumpLvl = profile.getSkillLevel("Double Jump");
+        if (doubleJumpLvl >= 1 && selectingEmpty) {
+            if (player.getGameMode() == org.bukkit.GameMode.SURVIVAL || player.getGameMode() == org.bukkit.GameMode.ADVENTURE) {
+                if (!player.getAllowFlight()) {
+                    player.setAllowFlight(true);
+                }
+            }
+        } else {
+            if (player.getGameMode() == org.bukkit.GameMode.SURVIVAL || player.getGameMode() == org.bukkit.GameMode.ADVENTURE) {
+                if (player.getAllowFlight() && !player.hasMetadata("npc")) {
+                    player.setAllowFlight(false);
+                    player.setFlying(false);
+                }
+            }
+        }
+
+        // Water Walking check
+        int waterWalkingLvl = profile.getSkillLevel("Water Walking");
+        boolean interrupted = System.currentTimeMillis() - lastDamageTime.getOrDefault(player.getUniqueId(), 0L) < 5000L;
+        
+        if (waterWalkingLvl >= 1 && selectingEmpty && !interrupted) {
+            // Speed effect
+            int amp = waterWalkingLvl / 15; // Speed I at 1-14, Speed II at 15-29, etc.
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 10, amp, true, false, true));
+            
+            // Water walking physics
+            Location loc = player.getLocation();
+            Block feet = loc.getBlock();
+            Block below = feet.getRelative(org.bukkit.block.BlockFace.DOWN);
+            
+            if (below.getType() == Material.WATER && (feet.getType() == Material.AIR || feet.getType() == Material.WATER)) {
+                double costPerSecond = 1.0; 
+                double costPerTick = costPerSecond * 0.1; // 2 ticks = 0.1s
+                if (profile.getCurrentMana() >= costPerTick) {
+                    profile.setCurrentMana(profile.getCurrentMana() - costPerTick);
+                    
+                    if (player.getVelocity().getY() < 0) {
+                        org.bukkit.util.Vector vel = player.getVelocity();
+                        vel.setY(0);
+                        player.setVelocity(vel);
+                    }
+                    if (player.getLocation().getY() < below.getY() + 1.0) {
+                        Location target = player.getLocation();
+                        target.setY(below.getY() + 1.0);
+                        player.teleport(target);
+                    }
+                    
+                    player.getWorld().spawnParticle(Particle.SPLASH, player.getLocation().add(0, 0.05, 0), 2, 0.1, 0, 0.1, 0.01);
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerToggleFlight(PlayerToggleFlightEvent event) {
+        Player player = event.getPlayer();
+        if (player.getGameMode() == org.bukkit.GameMode.CREATIVE || player.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+            return;
+        }
+        
+        PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+        if (profile == null) return;
+        
+        int doubleJumpLvl = profile.getSkillLevel("Double Jump");
+        boolean isMonk = profile.getUnlockedClasses().contains("Monk") || profile.getUnlockedClasses().contains("Admin Class");
+        
+        if (isMonk && doubleJumpLvl >= 1 && isSelectingEmptySlot(player)) {
+            event.setCancelled(true);
+            player.setAllowFlight(false);
+            player.setFlying(false);
+            
+            double cost = 15.0;
+            if (!checkMana(player, profile, cost, "Double Jump")) {
+                return;
+            }
+            
+            profile.setCurrentMana(profile.getCurrentMana() - cost);
+            
+            double launchPower = 0.8 + (doubleJumpLvl * 0.015);
+            org.bukkit.util.Vector dir = player.getLocation().getDirection().setY(0).normalize();
+            org.bukkit.util.Vector vel = dir.multiply(0.6).setY(launchPower);
+            
+            player.setVelocity(vel);
+            player.sendMessage(ChatColor.AQUA + "Double Jump!");
+            player.playSound(player.getLocation(), Sound.ENTITY_BREEZE_WIND_BURST, 1.0f, 1.2f);
+            player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 15, 0.3, 0.1, 0.3, 0.05);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            lastDamageTime.put(player.getUniqueId(), System.currentTimeMillis());
+            
+            PlayerProfile profile = plugin.getDatabaseManager().getProfile(player.getUniqueId());
+            if (profile != null && profile.getSkillLevel("Water Walking") >= 1 && isSelectingEmptySlot(player)) {
+                boolean isMonk = profile.getUnlockedClasses().contains("Monk") || profile.getUnlockedClasses().contains("Admin Class");
+                if (isMonk) {
+                    player.sendMessage(ChatColor.RED + "★ Your Water Walking stance was interrupted!");
+                    player.playSound(player.getLocation(), Sound.ENTITY_BAT_DEATH, 0.8f, 0.5f);
+                }
+            }
+        }
     }
 }

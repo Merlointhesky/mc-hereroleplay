@@ -187,6 +187,9 @@ public class ClassSkillsGUI implements CustomGUI {
             case "Raise Undead": return Material.BONE;
             case "Soul Drain": return Material.WITHER_SKELETON_SKULL;
             case "Deathly Rejuvenation": return Material.GHAST_TEAR;
+            case "Double Jump": return Material.FEATHER;
+            case "Water Walking": return Material.WATER_BUCKET;
+            case "Martial Arts": return Material.LEATHER_CHESTPLATE;
             default: return Material.BOOK;
         }
     }
@@ -740,6 +743,42 @@ public class ClassSkillsGUI implements CustomGUI {
                 lore.add("");
                 lore.add("&bNext Level Preview:");
                 lore.add("&7- Regeneration: &f+" + String.format("%.2f", (currentLvl + 1) * 0.01) + " HP/s");
+                break;
+            case "Double Jump":
+                lore.add("&7Second jump goes higher in mid-air.");
+                lore.add("");
+                lore.add("&bCurrent Effect:");
+                if (currentLvl > 0) {
+                    lore.add("&7- Launch Power: &f" + String.format("%.3f", 0.8 + currentLvl * 0.015));
+                } else {
+                    lore.add("&cLocked");
+                }
+                lore.add("");
+                lore.add("&bNext Level Preview:");
+                lore.add("&7- Launch Power: &f" + String.format("%.3f", 0.8 + (currentLvl + 1) * 0.015));
+                break;
+            case "Water Walking":
+                lore.add("&7Walk on water surface; speed boost.");
+                lore.add("&7Interrupted upon taking damage for 5s.");
+                lore.add("");
+                lore.add("&bCurrent Effect:");
+                if (currentLvl > 0) {
+                    lore.add("&7- Speed Potion: &fSpeed " + (1 + currentLvl / 15));
+                } else {
+                    lore.add("&cLocked");
+                }
+                lore.add("");
+                lore.add("&bNext Level Preview:");
+                lore.add("&7- Speed Potion: &fSpeed " + (1 + (currentLvl + 1) / 15));
+                break;
+            case "Martial Arts":
+                lore.add("&7Barefisted attacks deal significantly increased damage.");
+                lore.add("");
+                lore.add("&bCurrent Effect:");
+                lore.add("&7- Fist Damage: &f+" + (4.0 + currentLvl * 0.3) + " HP");
+                lore.add("");
+                lore.add("&bNext Level Preview:");
+                lore.add("&7- Fist Damage: &f+" + (4.0 + (currentLvl + 1) * 0.3) + " HP");
                 break;
         }
         

@@ -149,6 +149,16 @@ public class CombatListener implements Listener {
                 double multiplier = 1.0 + heavyStrikeLvl * 0.01;
                 event.setDamage(event.getDamage() * multiplier);
             }
+
+            // Martial Arts passive (Monk)
+            int martialArtsLvl = Math.min(100, profile.getSkillLevel("Martial Arts"));
+            if (martialArtsLvl > 0 && player.getInventory().getItemInMainHand().getType() == org.bukkit.Material.AIR) {
+                double extraDamage = 4.0 + martialArtsLvl * 0.3;
+                event.setDamage(event.getDamage() + extraDamage);
+                
+                event.getEntity().getWorld().spawnParticle(org.bukkit.Particle.CRIT, event.getEntity().getLocation().add(0, 1.0, 0), 5, 0.1, 0.2, 0.1, 0.05);
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1.0f, 1.0f);
+            }
         }
 
         if (isRanged) {

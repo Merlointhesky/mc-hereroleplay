@@ -140,6 +140,10 @@ public class ProfileGUI implements CustomGUI {
                 return "Shift+F";
             case "Aegis":
                 return "Shift+F (Block+Shift+F if off-hand)";
+            case "Double Jump":
+                return "Select empty slot + Space";
+            case "Water Walking":
+                return "Select empty slot";
             default:
                 return "Unknown";
         }
@@ -197,6 +201,10 @@ public class ProfileGUI implements CustomGUI {
                 return String.format("Summons %d friendly skeleton cohort(s) to fight for 30s.", 1 + level / 10);
             case "Soul Drain":
                 return String.format("Channels health from skeletons, dealing and healing %.1f HP per 0.5s.", (2.0 + level * 0.5) / 2.0);
+            case "Double Jump":
+                return String.format("Second jump goes higher in mid-air (launch power %.3f).", 0.8 + level * 0.015);
+            case "Water Walking":
+                return String.format("Walk on water with Speed %d boost; interrupted on damage.", 1 + level / 15);
             default:
                 return "No effect description.";
         }
@@ -242,6 +250,8 @@ public class ProfileGUI implements CustomGUI {
                 return String.format("+%d%% Knockback Resistance", level);
             case "Deathly Rejuvenation":
                 return String.format("+%.2f HP/s passive regeneration", level * 0.01);
+            case "Martial Arts":
+                return String.format("+%.1f Barefisted Melee Damage", 4.0 + level * 0.3);
             default:
                 return "No effect description.";
         }

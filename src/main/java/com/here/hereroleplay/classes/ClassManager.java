@@ -69,6 +69,7 @@ public class ClassManager {
         classes.add(new HrpClass("Miner", "Excavation bursts, Toughness.", 20, 20, 0, 0, 40, Material.IRON_PICKAXE, false));
         classes.add(new HrpClass("Farmer", "AoE Healing, Resource yield.", 0, 20, 0, 20, 40, Material.IRON_HOE, false));
         classes.add(new HrpClass("Engineer", "Industrial mass production, Enchanting.", 20, 0, 0, 20, 40, Material.REDSTONE, false));
+        classes.add(new HrpClass("Monk", "Barefisted martial arts, double jumps and water walking.", 10, 10, 10, 10, 40, Material.LEATHER_CHESTPLATE, false));
         
         // Hero Classes
         classes.add(new HrpClass("Paladin", "Pure active skill tank/healer (Aegis, Holy Nova).", 60, 0, 60, 60, 200, Material.SHIELD, true));
@@ -125,6 +126,11 @@ public class ClassManager {
         passiveSkills.add(new PassiveSkill("Hacker", "Engineer", "Applies additional Durability on tools used (+1% per level)"));
         passiveSkills.add(new PassiveSkill("Repair", "Engineer", "Increases mending and repair amounts (+1% per level)"));
         passiveSkills.add(new PassiveSkill("Power Surge", "Engineer", "Increases vehicle/mount speed (+1% per level)"));
+
+        // Monk
+        activeSkills.add(new ActiveSkill("Double Jump", "Monk", "Select empty quick-slot + Spacebar jump", 15, "Second jump goes higher based on points spent."));
+        activeSkills.add(new ActiveSkill("Water Walking", "Monk", "Select empty quick-slot + Walk on water", 1, "Speed increases based on points spent; interrupted upon taking damage."));
+        passiveSkills.add(new PassiveSkill("Martial Arts", "Monk", "Barefisted attacks deal significantly increased damage."));
 
         // Paladin
         activeSkills.add(new ActiveSkill("Aegis", "Paladin", "Shield in hand, Sneak + [F] (or Block + Shift+F if off-hand)", 40, "Invulnerability for a duration."));
